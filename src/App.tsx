@@ -2,10 +2,12 @@ import { type KeyboardEventHandler, type ReactNode, useCallback, useEffect, useR
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faSquareGithub, faLinkedin } from '@fortawesome/free-brands-svg-icons';
 import {
+  faArrowUpRightFromSquare,
   faBriefcase,
   faCodeBranch,
   faEnvelope,
   faFileLines,
+  faFilePdf,
   faGraduationCap,
   faTerminal,
   faUser,
@@ -24,6 +26,7 @@ import {
   PREVIEW_DEFAULT_NAME,
   PREVIEW_DEFAULT_ROLE,
   PREVIEW_DEFAULT_TAGLINE,
+  RESUME_PDF_URL,
   SOCIAL_LINKS,
 } from './core/data';
 import anandImage from './assets/Profile_Pic.jpg';
@@ -307,7 +310,13 @@ function App() {
     };
 
     const resumeItem = CONTACT.find((item) => item.label.toLowerCase() === 'resume');
-    const resumeHref = resumeItem ? getContactHref(resumeItem.label, resumeItem.value) : '#';
+    const resumeHrefFromContact = resumeItem ? getContactHref(resumeItem.label, resumeItem.value) : null;
+    const resumeHref = resumeHrefFromContact ?? RESUME_PDF_URL;
+    const resumeOpensNewTab =
+      resumeHref.startsWith('http://') ||
+      resumeHref.startsWith('https://') ||
+      resumeHref.startsWith('/') ||
+      resumeHref.toLowerCase().endsWith('.pdf');
 
     const renderCommandHint = (line: string) =>
       line.split(/(\s+)/).map((token, idx) => {
@@ -642,15 +651,17 @@ function App() {
             <p className="preview-resume-label">Resume</p>
             <h3 className="preview-resume-title">View My Resume</h3>
             <p className="preview-resume-subtitle">
-              Download the latest version for full experience, projects, and education details.
+              Open the PDF file of my Resume in a new tab.
             </p>
             <a
               className="preview-resume-link"
               href={resumeHref}
-              target={resumeHref.startsWith('http') ? '_blank' : undefined}
-              rel={resumeHref.startsWith('http') ? 'noreferrer' : undefined}
+              target={resumeOpensNewTab ? '_blank' : undefined}
+              rel={resumeOpensNewTab ? 'noreferrer' : undefined}
             >
-              Open Resume
+              <FontAwesomeIcon icon={faFilePdf} className="preview-resume-link-icon" aria-hidden />
+              <span className="preview-resume-link-text">Open resume</span>
+              <FontAwesomeIcon icon={faArrowUpRightFromSquare} className="preview-resume-link-external" aria-hidden />
             </a>
           </article>
         </section>

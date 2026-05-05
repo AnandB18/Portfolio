@@ -10,6 +10,7 @@ import type {
   TerminalHelpItem,
   TerminalWhoami,
 } from './types';
+import resumePdfUrl from '../assets/AnandBhatResume.pdf';
 
 export const ASCII_HEADER: string[] = [
   '  ____             __  _____      ___      ',
@@ -101,8 +102,11 @@ export const TERMINAL_EDUCATION_ITEMS: TerminalEducationItem[] = [
   },
 ];
 
+/** Bundled resume PDF URL (Vite); use for preview + any download/open links. */
+export const RESUME_PDF_URL = resumePdfUrl;
+
 export const TERMINAL_RESUME_LINES: string[] = [
-  '- Contact me for the latest resume copy or use the resume link in the preview panel.',
+  'Click to open my resume in a new tab.',
 ];
 
 export const ABOUT_PREVIEW = {
