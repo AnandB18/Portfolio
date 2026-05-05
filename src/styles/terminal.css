@@ -60,7 +60,7 @@
 }
 
 .terminal-output .line-command {
-  color: var(--color-terminal-line-command);
+  color: var(--color-terminal-line-hint);
 }
 
 .terminal-output .line-output {
@@ -73,6 +73,30 @@
 
 .terminal-output .line-error {
   color: var(--color-terminal-line-error);
+}
+
+.terminal-output .line-system,
+.terminal-output .line-output,
+.terminal-output .line-hint,
+.terminal-output .line-error {
+  padding-left: 2ch;
+}
+
+.terminal-segment-hint {
+  color: var(--color-terminal-line-hint);
+}
+
+.terminal-segment-project {
+  color: var(--color-terminal-line-project);
+}
+
+.terminal-segment-project-link {
+  color: var(--color-terminal-line-project-link);
+}
+
+.terminal-segment-link {
+  text-decoration: underline;
+  text-underline-offset: 2px;
 }
 
 .terminal-active-prompt-line {
@@ -104,15 +128,15 @@
 }
 
 .terminal-prompt-host {
-  color: var(--color-prompt-host);
+  color: var(--color-prompt-user);
 }
 
 .terminal-prompt-path {
-  color: var(--color-prompt-path);
+  color: var(--color-prompt-user);
 }
 
 .terminal-prompt-symbol {
-  color: var(--color-prompt-symbol);
+  color: var(--color-prompt-user);
   margin-right: 0.45rem;
 }
 
@@ -122,7 +146,7 @@
   border: 0;
   outline: 0;
   background: transparent;
-  color: inherit;
+  color: var(--color-terminal-line-hint);
   font: inherit;
 }
 

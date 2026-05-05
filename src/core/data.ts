@@ -1,4 +1,15 @@
-import type { ContactLink, Experience, Project, CurrentlyItem, Education } from './types';
+import type {
+  ContactLink,
+  Experience,
+  Project,
+  CurrentlyItem,
+  Education,
+  TerminalProjectItem,
+  TerminalExperienceItem,
+  TerminalEducationItem,
+  TerminalHelpItem,
+  TerminalWhoami,
+} from './types';
 
 export const ASCII_HEADER: string[] = [
   '  ____             __  _____      ___      ',
@@ -8,22 +19,91 @@ export const ASCII_HEADER: string[] = [
   '/_/    \\____/_/   \\__/_/ /_/_/  /_/_/\\__,_/',
 ];
 
-export const ABOUT_LINES: string[] = [
-  'I am Anand...',
-  'This portfolio is a terminal-inspired interface.',
-  'Try: projects, experience, contact',
+/**
+ * Terminal `whoami` copy—structured so the runner can emphasize name + command hints.
+ * Keep preview-rich content in ABOUT_PREVIEW / defaults below.
+ */
+export const TERMINAL_WHOAMI: TerminalWhoami = {
+  displayName: 'Anand Bhat',
+  credentials: 'BS Computer Science @ George Washington University · Expected May 2027',
+  tagline: 'Focus: Systems, security, and practical software engineering. From kernels and protocols to things people actually use.',
+  suggestedCommands: ['education', 'experience', 'projects', 'resume'],
+};
+
+/** Plain strings for the command registry / anything that needs a flat list. */
+export const terminalWhoamiAsStrings = (): string[] => {
+  const w = TERMINAL_WHOAMI;
+  return [ `${w.displayName} · ${w.credentials}`, w.tagline, `Try: ${w.suggestedCommands.join(', ')}` ];
+};
+
+export const TERMINAL_HELP_ITEMS: TerminalHelpItem[] = [
+  { command: 'help', description: 'Show available commands' },
+  { command: 'clear', description: 'Clear terminal output' },
+  { command: 'whoami', description: 'Learn about me' },
+  { command: 'education', description: 'Show education background' },
+  { command: 'experience', description: 'Show work experience' },
+  { command: 'projects', description: 'List available projects' },
+  { command: 'resume', description: 'Open my resume' },
 ];
 
 export const PREVIEW_DEFAULT_NAME = 'Anand Bhat';
 export const PREVIEW_DEFAULT_ROLE = 'Computer Science Student @ George Washington University';
-export const PREVIEW_DEFAULT_TAGLINE = 'Focused on systems, cybersecurity, and practical software engineering.';
+export const PREVIEW_DEFAULT_TAGLINE =
+  'Systems, security, and practical software engineering—from low-level systems to user-facing apps.';
 export const PREVIEW_DEFAULT_COMMANDS = 'Try: whoami, experience, or projects to learn more about me.';
 
-export const PROJECTS_HEADER = 'Projects:';
-export const PROJECTS_FOOTER = 'Project details panel wiring comes next.';
-export const EXPERIENCE_HEADER = 'Experience:';
-export const EDUCATION_HEADER = 'Education:';
-export const RESUME_HEADER = 'Resume:';
+export const TERMINAL_PROJECT_ITEMS: TerminalProjectItem[] = [
+  {
+    name: 'portfolio',
+    githubUrl: 'github.com/AnandB18/Portfolio',
+    summary: 'Terminal-style portfolio app (React/TypeScript, Go TUI in progress).',
+  },
+  {
+    name: 'gcal-planner',
+    githubUrl: 'github.com/AnandB18/gcal_planner',
+    summary: 'Goal-to-task planning with Google Calendar and Google Tasks integration.',
+  },
+  {
+    name: 'shell',
+    githubUrl: 'github.com/AnandB18/mini_shell',
+    summary: 'Mini Unix shell in C focused on pipes, job control, and signals.',
+  },
+  {
+    name: 'kanban-board',
+    githubUrl: 'github.com/AnandB18/Kanban_Board',
+    summary: 'Drag-and-drop task board with a Supabase-backed workflow.',
+  },
+];
+
+export const TERMINAL_EXPERIENCE_ITEMS: TerminalExperienceItem[] = [
+  {
+    titleAndTimeframe: 'Undergraduate Research Fellow | May 2026 - Present',
+    description: 'UAV anomaly detection research at the Security and Systems Lab.',
+  },
+  {
+    titleAndTimeframe: 'Intro to Systems Programming TA | Jun 2025 - Dec 2025',
+    description: 'Mentored 30+ students in C, memory, and process control.',
+  },
+  {
+    titleAndTimeframe: 'Intro to Algorithms and Data Structures TA | Jun 2024 - Dec 2025',
+    description: 'Led labs and coached students on implementation/debugging workflows.',
+  },
+];
+
+export const TERMINAL_EDUCATION_ITEMS: TerminalEducationItem[] = [
+  {
+    titleAndTimeframe: 'The George Washington University | BS in Computer Science | Expected: May 2027',
+    description: 'Technical GPA: 3.96 | Cumulative GPA: 3.83',
+  },
+  {
+    titleAndTimeframe: 'University College Dublin | Study Abroad | Jan 2026 - May 2026',
+    description: 'Semester abroad focused on new coursework and cross-cultural learning.',
+  },
+];
+
+export const TERMINAL_RESUME_LINES: string[] = [
+  '- Contact me for the latest resume copy or use the resume link in the preview panel.',
+];
 
 export const ABOUT_PREVIEW = {
   imageAlt: 'Photo of Anand Bhat',
@@ -164,7 +244,7 @@ export const EDUCATION: Education[] = [
     period: 'January 2026 - May 2026',
     location: 'Dublin, Ireland',
     highlights: [
-      'I chose study abroad first and foremost to travel, experience a new cultureimage.png, and learn outside a typical classroom setting.',
+      'I chose study abroad first and foremost to travel, experience a new culture, and learn outside a typical classroom setting.',
       'Dublin also sits in a growing European tech hub, so I was excited to take classes and explore the city while seeing how industry and startups show up day to day.',
     ],
   }

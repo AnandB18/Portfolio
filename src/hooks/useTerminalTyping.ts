@@ -15,6 +15,13 @@ type UseTerminalTypingOptions = {
   onCommitLines: (lines: TerminalLine[]) => void;
 };
 
+const getLineText = (line: TerminalLine) => {
+  if (line.segments && line.segments.length > 0) {
+    return line.segments.map((segment) => segment.text).join('');
+  }
+  return line.text;
+};
+
 export const useTerminalTyping = ({
   maxConcurrentTypingLines,
   overlapStartRatio,
@@ -44,9 +51,14 @@ export const useTerminalTyping = ({
     if (typingQueue.length === 0) return;
     if (activeTypingLines.length >= maxConcurrentTypingLines) return;
 
+    const isHelpFlowActive =
+      activeTypingLines.some((entry) => (entry.line.kind as string) === 'help') ||
+      (typingQueue[0]?.kind as string | undefined) === 'help';
+    if (isHelpFlowActive && activeTypingLines.length > 0) return;
+
     if (activeTypingLines.length > 0) {
       const latest = activeTypingLines[activeTypingLines.length - 1];
-      const latestLineLength = Math.max(1, latest.line.text.length);
+      const latestLineLength = Math.max(1, getLineText(latest.line).length);
       const latestProgress = latest.visibleChars / latestLineLength;
       if (latestProgress < overlapStartRatio) return;
     }
@@ -70,7 +82,7 @@ export const useTerminalTyping = ({
     const timeoutId = window.setTimeout(() => {
       setActiveTypingLines((prev) =>
         prev.map((entry) => {
-          const fullText = entry.line.text;
+          const fullText = getLineText(entry.line);
 
           if (entry.visibleChars >= fullText.length) return entry;
 
@@ -99,7 +111,8 @@ export const useTerminalTyping = ({
 
     let completedPrefixCount = 0;
     for (const entry of activeTypingLines) {
-      if (entry.visibleChars >= entry.line.text.length) {
+      const lineLength = getLineText(entry.line).length;
+      if (entry.visibleChars >= lineLength) {
         completedPrefixCount += 1;
         continue;
       }

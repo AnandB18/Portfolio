@@ -1,7 +1,16 @@
-import { type KeyboardEventHandler, useCallback, useEffect, useRef, useState } from 'react';
+import { type KeyboardEventHandler, type ReactNode, useCallback, useEffect, useRef, useState } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faSquareGithub, faLinkedin } from '@fortawesome/free-brands-svg-icons';
-import { faEnvelope } from '@fortawesome/free-solid-svg-icons';
+import {
+  faBriefcase,
+  faCodeBranch,
+  faEnvelope,
+  faFileLines,
+  faGraduationCap,
+  faTerminal,
+  faUser,
+  faWaveSquare,
+} from '@fortawesome/free-solid-svg-icons';
 import { COMMANDS } from './core/commands';
 import {
   ABOUT_PREVIEW,
@@ -23,7 +32,7 @@ import cliImage from './assets/CLI_Image.png';
 import portfolioImage from './assets/Porfolio.png';
 import redRisingPhoto from './assets/Red_Rising_Photo.jpg';
 import { executeCommand } from './core/runner';
-import type { TerminalLine } from './core/types';
+import type { TerminalLine, TerminalSegment } from './core/types';
 import { useTerminalTyping } from './hooks/useTerminalTyping';
 import './styles/tokens.css';
 import './styles/base.css';
@@ -73,7 +82,15 @@ function App() {
   const [history, setHistory] = useState<TerminalLine[]>([
     ...ASCII_HEADER.map((text) => ({ text, kind: 'ascii' as const })),
     { text: '', kind: 'system' },
-    { text: 'Welcome. Type "help" to see commands.', kind: 'system' },
+    {
+      text: 'Welcome. Type \'help\' to see commands.',
+      kind: 'system',
+      segments: [
+        { text: "Welcome. Type '" },
+        { text: 'help', tone: 'hint' },
+        { text: "' to see commands." },
+      ],
+    },
   ]);
   const [commandHistory, setCommandHistory] = useState<string[]>([]);
   const [historyIndex, setHistoryIndex] = useState(-1);
@@ -86,6 +103,20 @@ function App() {
   const previewScrollRafRef = useRef<number | null>(null);
   const previewEffectTimeoutRef = useRef<number | null>(null);
   const [shouldAutoFollow, setShouldAutoFollow] = useState(true);
+  const previewTabLabel =
+    previewState === 'default' ? 'Welcome' : previewState.charAt(0).toUpperCase() + previewState.slice(1);
+  const previewTabIcon =
+    previewState === 'default'
+      ? faWaveSquare
+      : previewState === 'whoami'
+        ? faUser
+        : previewState === 'projects'
+          ? faCodeBranch
+          : previewState === 'experience'
+            ? faBriefcase
+            : previewState === 'education'
+              ? faGraduationCap
+              : faFileLines;
   const commitTypedLines = useCallback((lines: TerminalLine[]) => {
     if (lines.length === 0) return;
     setHistory((prev) => [...prev, ...lines]);
@@ -140,12 +171,55 @@ function App() {
 
   const renderPrompt = () => (
     <span className="terminal-transcript-prompt">
-      <span className="terminal-prompt-user">explorer</span>
+      <span className="terminal-prompt-user">Anand</span>
       <span className="terminal-prompt-host">@portfolio</span>
       <span className="terminal-prompt-path">:~</span>
       <span className="terminal-prompt-symbol">$</span>
     </span>
   );
+
+  const renderTerminalLine = (line: TerminalLine, visibleChars?: number) => {
+    const segments: TerminalSegment[] = line.segments?.length ? line.segments : [{ text: line.text }];
+    let remainingChars = typeof visibleChars === 'number' ? visibleChars : Number.POSITIVE_INFINITY;
+    const parts: ReactNode[] = [];
+
+    for (const [idx, segment] of segments.entries()) {
+      if (remainingChars <= 0) break;
+      const visibleText = segment.text.slice(0, remainingChars);
+      remainingChars -= visibleText.length;
+      const segmentClassName =
+        segment.tone && segment.tone !== 'default' ? `terminal-segment terminal-segment-${segment.tone}` : undefined;
+
+      if (segment.tone === 'project-link' && visibleText.length === segment.text.length) {
+        const href = segment.text.startsWith('http://') || segment.text.startsWith('https://')
+          ? segment.text
+          : `https://${segment.text}`;
+        parts.push(
+          <a
+            key={`${segment.text}-${idx}`}
+            className={`${segmentClassName ?? ''} terminal-segment-link`.trim()}
+            href={href}
+            target="_blank"
+            rel="noreferrer"
+          >
+            {visibleText}
+          </a>
+        );
+        continue;
+      }
+
+      parts.push(
+        <span
+          key={`${segment.text}-${idx}`}
+          className={segmentClassName}
+        >
+          {visibleText}
+        </span>
+      );
+    }
+
+    return parts;
+  };
 
   const runCommand = (raw: string) => {
     const trimmed = raw.trim();
@@ -199,11 +273,19 @@ function App() {
 
     const immediateCommandLines = result.lines.filter((line) => line.kind === 'command');
     const typedLines = result.lines.filter((line) => line.kind !== 'command');
+    const typedLinesWithSpacing =
+      typedLines.length > 0
+        ? [
+            { text: '\u00a0', kind: 'output' as const },
+            ...typedLines,
+            { text: '\u00a0', kind: 'output' as const },
+          ]
+        : typedLines;
 
     if (immediateCommandLines.length > 0) {
       setHistory((prev) => [...prev, ...immediateCommandLines]);
     }
-    enqueueLines(typedLines);
+    enqueueLines(typedLinesWithSpacing);
   };
 
   const renderPreviewContent = () => {
@@ -723,7 +805,10 @@ function App() {
       <section className="window-panel terminal-panel">
         <div className="window-shell">
           <div className="window-titlebar" aria-hidden="true">
-            <div className="window-tab">PowerShell</div>
+            <div className="window-tab">
+              <FontAwesomeIcon icon={faTerminal} className="window-tab-icon" />
+              <span className="window-tab-label">Autobhat Terminal</span>
+            </div>
           </div>
 
           <div className="window-body terminal-body">
@@ -741,14 +826,14 @@ function App() {
                       {line.text}
                     </>
                   ) : (
-                    line.text
+                    renderTerminalLine(line)
                   )}
                 </p>
               ))}
               {activeTypingLines.map((entry) => {
                 return (
                   <p key={entry.id} className={`line-${entry.line.kind} line-typing-active`}>
-                    {entry.line.text.slice(0, entry.visibleChars)}
+                    {renderTerminalLine(entry.line, entry.visibleChars)}
                   </p>
                 );
               })}
@@ -775,7 +860,10 @@ function App() {
       <aside className="window-panel preview-panel">
         <div className="window-shell">
           <div className="window-titlebar" aria-hidden="true">
-            <div className="window-tab">Preview</div>
+            <div className="window-tab">
+              <FontAwesomeIcon icon={previewTabIcon} className="window-tab-icon" />
+              <span className="window-tab-label">{previewTabLabel}</span>
+            </div>
           </div>
           <div className="window-body preview-body">
             <div
