@@ -113,24 +113,35 @@ export const PROJECTS: Project[] = [
 export const EXPERIENCE: Experience[] = [
   {
     id: 'research-fellow',
-    role: 'Undergraduate Research Fellow  ',
+    role: 'Undergraduate Research Fellow',
     org: 'The George Washington University',
     period: 'May 2026 - Present',
-    highlights: ['Accepted into the Summer Undergraduate Program of Engineering Research (SUPER) at GWU','This Summer: Researching UAV anomaly detection under the guidance of Dr. Sibin Mohan.'],
+    highlights: [
+      'Selected for GWU\'s Summer Undergraduate Program for Engineering Research (SUPER).',
+      'Researching UAV anomaly detection under the guidance of Dr. Sibin Mohan.',
+    ],
   },
   {
     id: 'teaching-assistant-systems',
     role: 'Intro to Systems Programming Teaching Assistant',
-    org: 'The George Washington University',
+    org: 'GWU School of Engineering & Applied Science',
     period: 'June 2025 - December 2025',
-    highlights: ['Taught students the basics of systems programming while also teaching basic C concepts and syntax.', 'Worked on a project to create a system programming language that is easy to learn and use.'],
+    highlights: [
+      'Mentored 30+ students in core systems concepts, including C programming, pointers, memory management, and process control.',
+      'Led my own lab section, teaching core concepts and walking students through implementation and debugging strategies.',
+      'Collaborated with course staff to refine labs and instructional materials, aligning weekly objectives across sections.',
+    ],
   },
   {
     id: 'teaching-assistant-ads',
-    role: 'Algorithms And Data Structures Teaching Assistant',
-    org: 'The George Washington University',
-    period: 'June 2024 - June 2025',
-    highlights: ['Taught students the basics of algorithsm and data structures using Java', 'Worked on a project to create a data structures and algorithms library that is easy to learn and use.'],
+    role: 'Intro to Algorithms and Data Structures Teaching Assistant',
+    org: 'GWU School of Engineering & Applied Science',
+    period: 'June 2024 - December 2025',
+    highlights: [
+      'Mentored 30+ students to strengthen conceptual understanding of fundamental data structures and algorithms through Java.',
+      'Led my own lab section, teaching problem-solving approaches and guiding students through implementation and debugging workflows.',
+      'Partnered with faculty and fellow TAs to refine coursework, develop lab materials, and align weekly instructional goals.',
+    ],
   },
 ];
 
