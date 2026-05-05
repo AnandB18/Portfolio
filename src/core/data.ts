@@ -113,10 +113,10 @@ export const PROJECTS: Project[] = [
 export const EXPERIENCE: Experience[] = [
   {
     id: 'research-fellow',
-    role: 'Research Fellow ',
+    role: 'Undergraduate Research Fellow  ',
     org: 'The George Washington University',
     period: 'May 2026 - Present',
-    highlights: ['Built security tools for detecting if drones are compromised.', 'Worked on a project to detect if a drone is compromised by analyzing the drone\'s behavior and data.'],
+    highlights: ['Accepted into the Summer Undergraduate Program of Engineering Research (SUPER) at GWU','This Summer: Researching UAV anomaly detection under the guidance of Dr. Sibin Mohan.'],
   },
   {
     id: 'teaching-assistant-systems',
