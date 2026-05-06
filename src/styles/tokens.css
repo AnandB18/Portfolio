@@ -12,9 +12,6 @@
   --color-terminal-tab-text: #e6edf5;
 
   --color-prompt-user: var(--color-accent);
-  --color-prompt-host: #9fd7ff;
-  --color-prompt-path: #93a1b2;
-  --color-prompt-symbol: var(--color-accent);
   --color-terminal-line-ascii: var(--color-accent);
   --color-terminal-line-system: #aeb9c7;
   --color-terminal-line-command: #e6edf5;

@@ -10,14 +10,12 @@ import type {
   TerminalHelpItem,
   TerminalWhoami,
 } from './types';
-import resumePdfUrl from '../assets/AnandBhatResume.pdf';
 
 export const ASCII_HEADER: string[] = [
-    '                                                       ___',
-    ' o__      ┌─┐┌┐╷┌─┐┌┐╷╶┬┐   ┌┐ ╷ ╷┌─┐╶┬╴      o__     |   |\\',
-    '/|        ├─┤│└┤├─┤│└┤ ││   ├┴┐├─┤├─┤ │       /\\      |   |X\\',
-    '/ > o     ╵ ╵╵ ╵╵ ╵╵ ╵╶┴┘   └─┘╵ ╵╵ ╵ ╵        <\\     |   |XX\\',
-   
+  '                                                       ___',
+  ' o__      ┌─┐┌┐╷┌─┐┌┐╷╶┬┐   ┌┐ ╷ ╷┌─┐╶┬╴      o__     |   |\\',
+  '/|        ├─┤│└┤├─┤│└┤ ││   ├┴┐├─┤├─┤ │       /\\      |   |X\\',
+  '/ > o     ╵ ╵╵ ╵╵ ╵╵ ╵╶┴┘   └─┘╵ ╵╵ ╵ ╵        <\\     |   |XX\\',
 ];
 
 /**
@@ -28,7 +26,7 @@ export const TERMINAL_WHOAMI: TerminalWhoami = {
   displayName: 'Anand Bhat',
   credentials: 'BS Computer Science @ George Washington University · Expected May 2027',
   tagline: 'Focus: Systems, security, and practical software engineering. From kernels and protocols to things people actually use.',
-  suggestedCommands: ['education', 'experience', 'projects'],
+  suggestedCommands: ['education', 'experience', 'projects', 'resume'],
 };
 
 /** Plain strings for the command registry / anything that needs a flat list. */
@@ -102,9 +100,6 @@ export const TERMINAL_EDUCATION_ITEMS: TerminalEducationItem[] = [
   },
 ];
 
-/** Bundled resume PDF URL (Vite); use for preview + any download/open links. */
-export const RESUME_PDF_URL = resumePdfUrl;
-
 export const TERMINAL_RESUME_LINES: string[] = [
   'Click to open my resume in a new tab.',
 ];
@@ -131,7 +126,7 @@ export const CURRENTLY_ITEMS: CurrentlyItem[] = [
 export const SOCIAL_LINKS = [
   { label: 'LinkedIn', href: 'https://www.linkedin.com/in/abhat21/', icon: 'linkedin' },
   { label: 'GitHub', href: 'https://github.com/AnandB18', icon: 'github' },
-  { label: 'Email', href: 'mailto: anvenbha1@gmail.com' , icon: 'mail' },
+  { label: 'Email', href: 'mailto:anvenbha1@gmail.com', icon: 'mail' },
 ];
 
 export const PROJECTS: Project[] = [
@@ -146,8 +141,6 @@ export const PROJECTS: Project[] = [
       'Deployed web build is the stable baseline while the TUI catches up.',
     ],
     stack: ['React', 'TypeScript', 'Vite', 'Go', 'CSS'],
-    imageKey: 'project-portfolio',
-    imageAlt: 'Terminal Portfolio — web UI plus Go TUI scaffold',
     repoUrl: 'https://github.com/AnandB18/Portfolio',
   },
   {
@@ -161,8 +154,6 @@ export const PROJECTS: Project[] = [
       'Interactive input via Linenoise; focus on process control and pipes.',
     ],
     stack: ['C', 'POSIX', 'GNU Make', 'Linenoise'],
-    imageKey: 'project-shell',
-    imageAlt: 'Mini Shell (msh) — Unix shell project',
     repoUrl: 'https://github.com/AnandB18/mini_shell',
   },
   {
@@ -175,8 +166,6 @@ export const PROJECTS: Project[] = [
       'MVP is usable; polish continues and pace is slow while paused.',
     ],
     stack: ['Next.js', 'TypeScript', 'Prisma', 'PostgreSQL', 'Auth.js', 'Google APIs', 'Tailwind CSS'],
-    imageKey: 'project-planner',
-    imageAlt: 'GCal Planner — Google Calendar & Tasks sync',
     repoUrl: 'https://github.com/AnandB18/gcal_planner',
   },
   {

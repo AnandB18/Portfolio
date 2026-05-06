@@ -1,20 +1,21 @@
 {
   "asciiHeader": [
-    "  ____             __  _____      ___      ",
-    " / __ \\____  _____/ /_/ __(_)____/ (_)___ _",
-    "/ /_/ / __ \\/ ___/ __/ /_/ / ___/ / / __ `/",
-    "/ ____/ /_/ / /  / /_/ __/ / /  / / / /_/ / ",
-    "/_/    \\____/_/   \\__/_/ /_/_/  /_/_/\\__,_/"
+    "                                                       ___",
+    " o__      ┌─┐┌┐╷┌─┐┌┐╷╶┬┐   ┌┐ ╷ ╷┌─┐╶┬╴      o__     |   |\\",
+    "/|        ├─┤│└┤├─┤│└┤ ││   ├┴┐├─┤├─┤ │       /\\      |   |X\\",
+    "/ > o     ╵ ╵╵ ╵╵ ╵╵ ╵╶┴┘   └─┘╵ ╵╵ ╵ ╵        <\\     |   |XX\\"
   ],
   "aboutLines": [
-    "I am Anand...",
-    "This portfolio is a terminal-inspired interface.",
-    "Try: projects, experience, contact"
+    "Hello, I am Anand!",
+    "I am currently pursuing a BS in Computer Science at The George Washington University. Run: education",
+    "Upcoming, I will be researching UAV anomaly detection at the GWU Security and Systems Lab under the guidence of Dr. Sibin Mohan. Run: experience",
+    "Outside of school, I enjoy anything sports related, winding down with a good book, and exploring new tools and technologies through side projects. Run: projects",
+    "You can contact me via the links below. Thank you for visiting my portfolio!"
   ],
   "preview": {
     "name": "Anand Bhat",
     "role": "Computer Science Student @ George Washington University",
-    "tagline": "Focused on systems, cybersecurity, and practical software engineering."
+    "tagline": "Systems, security, and practical software engineering—from low-level systems to user-facing apps."
   },
   "projects": [
     {
@@ -55,7 +56,6 @@
       "title": "GCal Planner",
       "summaryLines": [
         "Links goals → projects → tasks with Google Calendar and Google Tasks.",
-        "Stack: Next.js, TypeScript, Prisma, PostgreSQL, Auth.js (Google OAuth).",
         "Incremental task sync, dashboard views, and calendar-backed scheduling.",
         "MVP is usable; polish continues and pace is slow while paused."
       ],
@@ -87,15 +87,17 @@
     }
   ],
   "experienceLines": [
-    "Research Fellow  | The George Washington University | May 2026 - Present",
-    "  Built security tools for detecting if drones are compromised.",
-    "  Worked on a project to detect if a drone is compromised by analyzing the drone's behavior and data.",
-    "Intro to Systems Programming Teaching Assistant | The George Washington University | June 2025 - December 2025",
-    "  Taught students the basics of systems programming while also teaching basic C concepts and syntax.",
-    "  Worked on a project to create a system programming language that is easy to learn and use.",
-    "Algorithms And Data Structures Teaching Assistant | The George Washington University | June 2024 - June 2025",
-    "  Taught students the basics of algorithsm and data structures using Java",
-    "  Worked on a project to create a data structures and algorithms library that is easy to learn and use."
+    "Undergraduate Research Fellow | The George Washington University | May 2026 - Present",
+    "  Selected for GWU's Summer Undergraduate Program for Engineering Research (SUPER).",
+    "  Researching UAV anomaly detection under the guidance of Dr. Sibin Mohan.",
+    "Intro to Systems Programming Teaching Assistant | GWU School of Engineering & Applied Science | June 2025 - December 2025",
+    "  Mentored 30+ students in core systems concepts, including C programming, pointers, memory management, and process control.",
+    "  Led my own lab section, teaching core concepts and walking students through implementation and debugging strategies.",
+    "  Collaborated with course staff to refine labs and instructional materials, aligning weekly objectives across sections.",
+    "Intro to Algorithms and Data Structures Teaching Assistant | GWU School of Engineering & Applied Science | June 2024 - December 2025",
+    "  Mentored 30+ students to strengthen conceptual understanding of fundamental data structures and algorithms through Java.",
+    "  Led my own lab section, teaching problem-solving approaches and guiding students through implementation and debugging workflows.",
+    "  Partnered with faculty and fellow TAs to refine coursework, develop lab materials, and align weekly instructional goals."
   ],
   "educationLines": [
     "Bachelor of Science in Computer Science | The George Washington University | Expected Graduation: May 2027",
@@ -105,7 +107,7 @@
     "  Coursework: Intro to AI, Intro to Systems Programming, Intro to Computer Security, Operating Systems, Computer Architecture, Algorithms and Data Structures",
     "Study Abroad | University College Dublin | January 2026 - May 2026",
     "  Location: Dublin, Ireland",
-    "  I chose study abroad first and foremost to travel, experience a new cultureimage.png, and learn outside a typical classroom setting.",
+    "  I chose study abroad first and foremost to travel, experience a new culture, and learn outside a typical classroom setting.",
     "  Dublin also sits in a growing European tech hub, so I was excited to take classes and explore the city while seeing how industry and startups show up day to day."
   ],
   "contacts": [

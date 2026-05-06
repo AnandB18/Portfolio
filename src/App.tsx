@@ -16,7 +16,6 @@ import {
 import { COMMANDS } from './core/commands';
 import {
   ABOUT_PREVIEW,
-  ASCII_HEADER,
   CONTACT,
   CURRENTLY_ITEMS,
   EDUCATION,
@@ -26,15 +25,17 @@ import {
   PREVIEW_DEFAULT_NAME,
   PREVIEW_DEFAULT_ROLE,
   PREVIEW_DEFAULT_TAGLINE,
-  RESUME_PDF_URL,
   SOCIAL_LINKS,
 } from './core/data';
+import { RESUME_PDF_URL } from './core/resumeUrl';
 import anandImage from './assets/Profile_Pic.jpg';
 import avatarPhoto from './assets/Avatar_Photo.png';
 import cliImage from './assets/CLI_Image.png';
 import portfolioImage from './assets/Porfolio.png';
 import redRisingPhoto from './assets/Red_Rising_Photo.jpg';
+import { hrefOpensInNewTab } from './core/linkUtils';
 import { executeCommand } from './core/runner';
+import { buildInitialTerminalHistory } from './core/terminalBootstrap';
 import type { TerminalLine, TerminalSegment } from './core/types';
 import { useTerminalTyping } from './hooks/useTerminalTyping';
 import './styles/tokens.css';
@@ -82,19 +83,7 @@ function App() {
   const overlapStartRatio = 0.2;
   const typingTickMs = 3;
   const [input, setInput] = useState('');
-  const [history, setHistory] = useState<TerminalLine[]>([
-    ...ASCII_HEADER.map((text) => ({ text, kind: 'ascii' as const })),
-    { text: '', kind: 'system' },
-    {
-      text: 'Welcome. Type \'help\' to see commands.',
-      kind: 'system',
-      segments: [
-        { text: "Welcome. Type '" },
-        { text: 'help', tone: 'hint' },
-        { text: "' to see commands." },
-      ],
-    },
-  ]);
+  const [history, setHistory] = useState<TerminalLine[]>(buildInitialTerminalHistory);
   const [commandHistory, setCommandHistory] = useState<string[]>([]);
   const [historyIndex, setHistoryIndex] = useState(-1);
   const [courseworkManualById, setCourseworkManualById] = useState<Record<string, boolean>>({});
@@ -233,7 +222,7 @@ function App() {
     setHistoryIndex(-1);
 
     const result = executeCommand(trimmed, {
-      clearHistory: () => setHistory([]),
+      clearHistory: () => setHistory(buildInitialTerminalHistory()),
     });
 
     if (result.didClear) {
@@ -312,11 +301,7 @@ function App() {
     const resumeItem = CONTACT.find((item) => item.label.toLowerCase() === 'resume');
     const resumeHrefFromContact = resumeItem ? getContactHref(resumeItem.label, resumeItem.value) : null;
     const resumeHref = resumeHrefFromContact ?? RESUME_PDF_URL;
-    const resumeOpensNewTab =
-      resumeHref.startsWith('http://') ||
-      resumeHref.startsWith('https://') ||
-      resumeHref.startsWith('/') ||
-      resumeHref.toLowerCase().endsWith('.pdf');
+    const resumeOpensNewTab = hrefOpensInNewTab(resumeHref);
 
     const renderCommandHint = (line: string) =>
       line.split(/(\s+)/).map((token, idx) => {

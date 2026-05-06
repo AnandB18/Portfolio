@@ -2,7 +2,7 @@ import { mkdir, writeFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import {
   ASCII_HEADER,
-  ABOUT_LINES,
+  ABOUT_PREVIEW,
   PREVIEW_DEFAULT_NAME,
   PREVIEW_DEFAULT_ROLE,
   PREVIEW_DEFAULT_TAGLINE,
@@ -66,7 +66,7 @@ const toEducationLines = () =>
 
 const buildPayload = (): SharedPortfolioData => ({
   asciiHeader: ASCII_HEADER,
-  aboutLines: ABOUT_LINES,
+  aboutLines: ABOUT_PREVIEW.paragraphs,
   preview: {
     name: PREVIEW_DEFAULT_NAME,
     role: PREVIEW_DEFAULT_ROLE,

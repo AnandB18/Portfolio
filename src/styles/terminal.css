@@ -123,20 +123,14 @@
   white-space: nowrap;
 }
 
-.terminal-prompt-user {
-  color: var(--color-prompt-user);
-}
-
-.terminal-prompt-host {
-  color: var(--color-prompt-user);
-}
-
-.terminal-prompt-path {
+.terminal-prompt-user,
+.terminal-prompt-host,
+.terminal-prompt-path,
+.terminal-prompt-symbol {
   color: var(--color-prompt-user);
 }
 
 .terminal-prompt-symbol {
-  color: var(--color-prompt-user);
   margin-right: 0.45rem;
 }
 

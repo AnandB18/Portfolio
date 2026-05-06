@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/set-state-in-effect -- typing queue drains and commits lines inside timed/effects by design */
 import { useEffect, useRef, useState } from 'react';
 import type { TerminalLine } from '../core/types';
 
@@ -50,11 +51,6 @@ export const useTerminalTyping = ({
   useEffect(() => {
     if (typingQueue.length === 0) return;
     if (activeTypingLines.length >= maxConcurrentTypingLines) return;
-
-    const isHelpFlowActive =
-      activeTypingLines.some((entry) => (entry.line.kind as string) === 'help') ||
-      (typingQueue[0]?.kind as string | undefined) === 'help';
-    if (isHelpFlowActive && activeTypingLines.length > 0) return;
 
     if (activeTypingLines.length > 0) {
       const latest = activeTypingLines[activeTypingLines.length - 1];
