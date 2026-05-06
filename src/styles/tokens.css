@@ -14,9 +14,9 @@
   --color-prompt-user: var(--color-accent);
   --color-terminal-line-ascii: var(--color-accent);
   --color-terminal-line-system: #aeb9c7;
-  --color-terminal-line-command: #e6edf5;
+  --color-terminal-line-command: #8eb6ff;
   --color-terminal-line-output: #aab8c6;
-  --color-terminal-line-hint: #8eb6ff;
+  --color-terminal-line-hint: var(--color-terminal-line-output);
   --color-terminal-line-project: #b392f0;
   --color-terminal-line-project-link: #ceb3ff;
   --color-terminal-line-error: #ff8f8f;

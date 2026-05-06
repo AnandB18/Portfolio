@@ -6,7 +6,7 @@ const welcomeLine: TerminalLine = {
   kind: 'system',
   segments: [
     { text: "Welcome. Type '" },
-    { text: 'help', tone: 'hint' },
+    { text: 'help', tone: 'command' },
     { text: "' to see commands." },
   ],
 };

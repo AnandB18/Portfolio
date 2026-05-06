@@ -68,7 +68,7 @@ export type TerminalLineKind =
   | 'hint'
   | 'error';
 
-export type TerminalSegmentTone = 'default' | 'hint' | 'project' | 'project-link';
+export type TerminalSegmentTone = 'default' | 'hint' | 'command' | 'project' | 'project-link';
 
 export type TerminalSegment = {
   text: string;

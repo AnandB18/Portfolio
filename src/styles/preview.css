@@ -172,7 +172,7 @@
 }
 
 .preview-cmd {
-  color: var(--color-terminal-line-hint);
+  color: var(--color-terminal-line-command);
   font-weight: 600;
 }
 
