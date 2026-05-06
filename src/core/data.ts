@@ -57,8 +57,8 @@ export const CTF_CHALLENGES: readonly CtfChallengeDefinition[] = [
     hints: [
       'Find three words to build the flag',
       'Each word is in a different part of the portfolio',
-      'The relevent commands are whoami, projects, and experience. Extract one marked/token-like word from each.',
-      "Look at the first highlihgted word in each command",
+      'The relevent commands are whoami, projects, and experience in that order',
+      "Look at the first highlihgted/purple word in each command output",
       'Build flag1{WordFromWhoami_WordFromProjects_WordFromExperience}.',
     ],
     expectedFlag: 'flag1{Anand_portfolio_Undergraduate}',
@@ -67,7 +67,7 @@ export const CTF_CHALLENGES: readonly CtfChallengeDefinition[] = [
     id: 2,
     title: 'Challenge 2: Inspector Signal',
     description:
-      'Riddle: "I hide where developers stare. Open the glass, inspect the frame, and the second flag appears." Use browser DevTools to discover the flag.',
+      'Riddle: "I hide where developers stare. Open the glass, inspect the frame, and the second flag appears." Use browser DevTools to discover the flag (desktop browser recommended).',
     hints: [
       'The flag is in the browser, not in the terminal output.',
       'Open DevTools (Ctrl+Shift+I / Cmd+Option+I) and inspect the CTF panel',

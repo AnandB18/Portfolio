@@ -156,6 +156,11 @@ function App() {
   });
   const [ctfExpanded, setCtfExpanded] = useState(false);
   const [ctfBottomMode, setCtfBottomMode] = useState<'absolute' | 'sticky'>('absolute');
+  const [ctfAnswerPromptByChallenge, setCtfAnswerPromptByChallenge] = useState<Record<CtfChallengeId, boolean>>({
+    1: false,
+    2: false,
+    3: false,
+  });
   const previewTabLabel =
     previewState === 'default'
       ? 'Welcome'
@@ -188,6 +193,7 @@ function App() {
   });
   const ctfActiveChallenge = getCtfChallengeById(ctfProgress.currentChallenge);
   const ctfSolvedCount = Number(ctfProgress.solved[1]) + Number(ctfProgress.solved[2]) + Number(ctfProgress.solved[3]);
+  const ctfIsComplete = ctfSolvedCount === 3;
 
   useEffect(() => {
     window.localStorage.setItem(CTF_STORAGE_KEY, JSON.stringify(ctfProgress));
@@ -435,9 +441,11 @@ function App() {
           pushTerminalOutput([{ text: `Challenge ${requested} is locked. Solve challenge ${ctfProgress.currentChallenge} first.`, kind: 'hint' }]);
           return;
         }
+        const challenge = getCtfChallengeById(requested);
         setCtfProgress((prev) => ({ ...prev, currentChallenge: requested }));
         pushTerminalOutput([
-          { text: `Loaded Challenge ${requested}: ${getCtfChallengeById(requested).title}`, kind: 'system' },
+          { text: `Loaded Challenge ${requested}: ${challenge.title}`, kind: 'system' },
+          { text: challenge.description, kind: 'output' },
           ...(requested === 3
             ? [{ text: `Encoded payload: ${CTF_CHALLENGE_3_ENCODED}`, kind: 'hint' as const }]
             : []),
@@ -494,6 +502,7 @@ function App() {
         echoCommand();
         setCtfProgress({ ...DEFAULT_CTF_PROGRESS, inMode: true });
         setCtfExpanded(false);
+        setCtfAnswerPromptByChallenge({ 1: false, 2: false, 3: false });
         pushTerminalOutput([{ text: 'CTF progress reset. Back to Challenge 1.', kind: 'system' }]);
         return;
       }
@@ -646,7 +655,35 @@ function App() {
                       </button>
                     );
                   })}
+                  {status !== 'completed' ? (
+                    <button
+                      type="button"
+                      className="preview-ctf-answer-btn"
+                      disabled={status === 'locked'}
+                      onClick={() => {
+                        setCtfAnswerPromptByChallenge((prev) => ({ ...prev, [challenge.id]: true }));
+                        pushTerminalOutput([
+                          {
+                            text: `No spoilers for Challenge ${challenge.id} here. Contact me and we can discuss the answer path together.`,
+                            kind: 'hint',
+                          },
+                        ]);
+                      }}
+                    >
+                      Answer
+                    </button>
+                  ) : null}
                 </div>
+                {status !== 'completed' && ctfAnswerPromptByChallenge[challenge.id] ? (
+                  <p className="preview-ctf-answer-note">
+                    No spoilers here. Contact me and we can discuss the answer path together.
+                  </p>
+                ) : null}
+                {status === 'completed' ? (
+                  <p className="preview-ctf-answer-reveal">
+                    Answer: <span>{challenge.expectedFlag}</span>
+                  </p>
+                ) : null}
                 {status === 'locked' ? (
                   <div className="preview-ctf-lock-overlay" aria-hidden>
                     <FontAwesomeIcon icon={faLock} />
@@ -661,6 +698,12 @@ function App() {
             );
           })}
         </div>
+        {ctfSolvedCount === 3 ? (
+          <section className="preview-ctf-finale" aria-label="CTF completion message">
+            <h4>Congrats! You cleared the mini CTF.</h4>
+            <p>Now maybe go outside and touch some grass</p>
+          </section>
+        ) : null}
       </section>
     );
   };
@@ -1284,10 +1327,10 @@ function App() {
                     }}
                     aria-expanded={ctfExpanded}
                   >
-                    <span className="preview-ctf-bottom-card">
+                    <span className={`preview-ctf-bottom-card${ctfIsComplete ? ' is-complete' : ''}`}>
                       <span className="preview-ctf-bottom-label">
-                        <span>CTF ACTIVE</span>
-                        <span>{`Challenge ${ctfProgress.currentChallenge}/3 • ${ctfSolvedCount}/3 solved`}</span>
+                        <span>{ctfIsComplete ? 'CTF COMPLETE - Congrats!' : 'CTF ACTIVE'}</span>
+                        <span>{ctfIsComplete ? 'Status: 3/3 complete' : `Challenge ${ctfProgress.currentChallenge}/3 • ${ctfSolvedCount}/3 solved`}</span>
                       </span>
                       <span className="preview-ctf-bottom-toggle">
                         {ctfExpanded ? 'Collapse' : 'Expand'}
