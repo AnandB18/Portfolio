@@ -1,7 +1,18 @@
-import { type KeyboardEventHandler, useCallback, useEffect, useRef, useState } from 'react';
+import { type KeyboardEventHandler, type ReactNode, useCallback, useEffect, useRef, useState } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faSquareGithub, faLinkedin } from '@fortawesome/free-brands-svg-icons';
-import { faEnvelope } from '@fortawesome/free-solid-svg-icons';
+import {
+  faArrowUpRightFromSquare,
+  faBriefcase,
+  faCodeBranch,
+  faEnvelope,
+  faFileLines,
+  faFilePdf,
+  faGraduationCap,
+  faTerminal,
+  faUser,
+  faWaveSquare,
+} from '@fortawesome/free-solid-svg-icons';
 import { COMMANDS } from './core/commands';
 import {
   ABOUT_PREVIEW,
@@ -15,6 +26,7 @@ import {
   PREVIEW_DEFAULT_NAME,
   PREVIEW_DEFAULT_ROLE,
   PREVIEW_DEFAULT_TAGLINE,
+  RESUME_PDF_URL,
   SOCIAL_LINKS,
 } from './core/data';
 import anandImage from './assets/Profile_Pic.jpg';
@@ -23,7 +35,7 @@ import cliImage from './assets/CLI_Image.png';
 import portfolioImage from './assets/Porfolio.png';
 import redRisingPhoto from './assets/Red_Rising_Photo.jpg';
 import { executeCommand } from './core/runner';
-import type { TerminalLine } from './core/types';
+import type { TerminalLine, TerminalSegment } from './core/types';
 import { useTerminalTyping } from './hooks/useTerminalTyping';
 import './styles/tokens.css';
 import './styles/base.css';
@@ -65,21 +77,23 @@ const CURRENTLY_IMAGE_MAP: Record<string, string> = {
   'building-image': portfolioImage,
 };
 
-const PROJECT_IMAGE_MAP: Record<string, string> = {
-  'project-portfolio': portfolioImage,
-  'project-shell': cliImage,
-  'project-planner': redRisingPhoto,
-};
-
 function App() {
-  const maxConcurrentTypingLines = 3;
+  const maxConcurrentTypingLines = 5;
   const overlapStartRatio = 0.2;
-  const typingTickMs = 8;
+  const typingTickMs = 3;
   const [input, setInput] = useState('');
   const [history, setHistory] = useState<TerminalLine[]>([
     ...ASCII_HEADER.map((text) => ({ text, kind: 'ascii' as const })),
     { text: '', kind: 'system' },
-    { text: 'Welcome. Type "help" to see commands.', kind: 'system' },
+    {
+      text: 'Welcome. Type \'help\' to see commands.',
+      kind: 'system',
+      segments: [
+        { text: "Welcome. Type '" },
+        { text: 'help', tone: 'hint' },
+        { text: "' to see commands." },
+      ],
+    },
   ]);
   const [commandHistory, setCommandHistory] = useState<string[]>([]);
   const [historyIndex, setHistoryIndex] = useState(-1);
@@ -92,6 +106,20 @@ function App() {
   const previewScrollRafRef = useRef<number | null>(null);
   const previewEffectTimeoutRef = useRef<number | null>(null);
   const [shouldAutoFollow, setShouldAutoFollow] = useState(true);
+  const previewTabLabel =
+    previewState === 'default' ? 'Welcome' : previewState.charAt(0).toUpperCase() + previewState.slice(1);
+  const previewTabIcon =
+    previewState === 'default'
+      ? faWaveSquare
+      : previewState === 'whoami'
+        ? faUser
+        : previewState === 'projects'
+          ? faCodeBranch
+          : previewState === 'experience'
+            ? faBriefcase
+            : previewState === 'education'
+              ? faGraduationCap
+              : faFileLines;
   const commitTypedLines = useCallback((lines: TerminalLine[]) => {
     if (lines.length === 0) return;
     setHistory((prev) => [...prev, ...lines]);
@@ -146,12 +174,55 @@ function App() {
 
   const renderPrompt = () => (
     <span className="terminal-transcript-prompt">
-      <span className="terminal-prompt-user">explorer</span>
+      <span className="terminal-prompt-user">Anand</span>
       <span className="terminal-prompt-host">@portfolio</span>
       <span className="terminal-prompt-path">:~</span>
       <span className="terminal-prompt-symbol">$</span>
     </span>
   );
+
+  const renderTerminalLine = (line: TerminalLine, visibleChars?: number) => {
+    const segments: TerminalSegment[] = line.segments?.length ? line.segments : [{ text: line.text }];
+    let remainingChars = typeof visibleChars === 'number' ? visibleChars : Number.POSITIVE_INFINITY;
+    const parts: ReactNode[] = [];
+
+    for (const [idx, segment] of segments.entries()) {
+      if (remainingChars <= 0) break;
+      const visibleText = segment.text.slice(0, remainingChars);
+      remainingChars -= visibleText.length;
+      const segmentClassName =
+        segment.tone && segment.tone !== 'default' ? `terminal-segment terminal-segment-${segment.tone}` : undefined;
+
+      if (segment.tone === 'project-link' && visibleText.length === segment.text.length) {
+        const href = segment.text.startsWith('http://') || segment.text.startsWith('https://')
+          ? segment.text
+          : `https://${segment.text}`;
+        parts.push(
+          <a
+            key={`${segment.text}-${idx}`}
+            className={`${segmentClassName ?? ''} terminal-segment-link`.trim()}
+            href={href}
+            target="_blank"
+            rel="noreferrer"
+          >
+            {visibleText}
+          </a>
+        );
+        continue;
+      }
+
+      parts.push(
+        <span
+          key={`${segment.text}-${idx}`}
+          className={segmentClassName}
+        >
+          {visibleText}
+        </span>
+      );
+    }
+
+    return parts;
+  };
 
   const runCommand = (raw: string) => {
     const trimmed = raw.trim();
@@ -205,11 +276,19 @@ function App() {
 
     const immediateCommandLines = result.lines.filter((line) => line.kind === 'command');
     const typedLines = result.lines.filter((line) => line.kind !== 'command');
+    const typedLinesWithSpacing =
+      typedLines.length > 0
+        ? [
+            { text: '\u00a0', kind: 'output' as const },
+            ...typedLines,
+            { text: '\u00a0', kind: 'output' as const },
+          ]
+        : typedLines;
 
     if (immediateCommandLines.length > 0) {
       setHistory((prev) => [...prev, ...immediateCommandLines]);
     }
-    enqueueLines(typedLines);
+    enqueueLines(typedLinesWithSpacing);
   };
 
   const renderPreviewContent = () => {
@@ -231,7 +310,13 @@ function App() {
     };
 
     const resumeItem = CONTACT.find((item) => item.label.toLowerCase() === 'resume');
-    const resumeHref = resumeItem ? getContactHref(resumeItem.label, resumeItem.value) : '#';
+    const resumeHrefFromContact = resumeItem ? getContactHref(resumeItem.label, resumeItem.value) : null;
+    const resumeHref = resumeHrefFromContact ?? RESUME_PDF_URL;
+    const resumeOpensNewTab =
+      resumeHref.startsWith('http://') ||
+      resumeHref.startsWith('https://') ||
+      resumeHref.startsWith('/') ||
+      resumeHref.toLowerCase().endsWith('.pdf');
 
     const renderCommandHint = (line: string) =>
       line.split(/(\s+)/).map((token, idx) => {
@@ -364,56 +449,66 @@ function App() {
     }
 
     if (previewState === 'projects') {
+      const currentProjects = PROJECTS.filter((project) => project.status !== 'completed');
+      const completedProjects = PROJECTS.filter((project) => project.status === 'completed');
+      const renderProjectCards = (projects: typeof PROJECTS) =>
+        projects.map((project) => {
+          return (
+            <article key={project.id} className="preview-project-card">
+              <div className="preview-project-content">
+                <h4 className="preview-project-title">{project.title}</h4>
+                <div className="preview-project-summary-wrap">
+                  {project.summaryLines?.length ? (
+                    <ul className="preview-project-summary-list">
+                      {project.summaryLines.map((line, index) => (
+                        <li key={`${project.id}-summary-${index}`}>{line}</li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <p className="preview-project-summary-empty">Project details coming soon.</p>
+                  )}
+                </div>
+                {project.stack?.length ? (
+                  <div className="preview-project-tags" aria-label={`${project.title} stack`}>
+                    {project.stack.map((tag) => (
+                      <span key={`${project.id}-${tag}`} className="preview-project-tag">
+                        {tag}
+                      </span>
+                    ))}
+                  </div>
+                ) : null}
+                <div className="preview-project-links">
+                  {project.repoUrl ? (
+                    <a className="preview-project-link" href={project.repoUrl} target="_blank" rel="noreferrer">
+                      GitHub
+                    </a>
+                  ) : null}
+                  {project.liveUrl ? (
+                    <a className="preview-project-link" href={project.liveUrl} target="_blank" rel="noreferrer">
+                      Demo
+                    </a>
+                  ) : null}
+                </div>
+              </div>
+            </article>
+          );
+        });
+
       return (
         <section className="preview-projects" aria-label="Projects">
           <h3 className="preview-projects-title">Projects</h3>
-          <div className="preview-projects-grid">
-            {PROJECTS.map((project) => {
-              const imageSrc = project.imageKey ? PROJECT_IMAGE_MAP[project.imageKey] : undefined;
-              return (
-                <article key={project.id} className="preview-project-card">
-                  <div className="preview-project-image-wrap">
-                    {imageSrc ? (
-                      <img
-                        className="preview-project-image"
-                        src={imageSrc}
-                        alt={project.imageAlt ?? `${project.title} preview`}
-                      />
-                    ) : (
-                      <div className="preview-project-image preview-project-image-placeholder" />
-                    )}
-                  </div>
-                  <div className="preview-project-content">
-                    <h4 className="preview-project-title">{project.title}</h4>
-                    <p className="preview-project-summary">
-                      {project.summary ?? 'Project details coming soon.'}
-                    </p>
-                    {project.stack?.length ? (
-                      <div className="preview-project-tags" aria-label={`${project.title} stack`}>
-                        {project.stack.map((tag) => (
-                          <span key={`${project.id}-${tag}`} className="preview-project-tag">
-                            {tag}
-                          </span>
-                        ))}
-                      </div>
-                    ) : null}
-                    <div className="preview-project-links">
-                      {project.repoUrl ? (
-                        <a className="preview-project-link" href={project.repoUrl} target="_blank" rel="noreferrer">
-                          GitHub
-                        </a>
-                      ) : null}
-                      {project.liveUrl ? (
-                        <a className="preview-project-link" href={project.liveUrl} target="_blank" rel="noreferrer">
-                          Live
-                        </a>
-                      ) : null}
-                    </div>
-                  </div>
-                </article>
-              );
-            })}
-          </div>
+          {currentProjects.length ? (
+            <section className="preview-projects-section" aria-label="Currently working on projects">
+              <h4 className="preview-projects-subtitle">Currently Working On</h4>
+              <div className="preview-projects-grid">{renderProjectCards(currentProjects)}</div>
+            </section>
+          ) : null}
+          {completedProjects.length ? (
+            <section className="preview-projects-section" aria-label="Completed projects">
+              <h4 className="preview-projects-subtitle">Completed</h4>
+              <div className="preview-projects-grid">{renderProjectCards(completedProjects)}</div>
+            </section>
+          ) : null}
         </section>
       );
     }
@@ -556,15 +651,17 @@ function App() {
             <p className="preview-resume-label">Resume</p>
             <h3 className="preview-resume-title">View My Resume</h3>
             <p className="preview-resume-subtitle">
-              Download the latest version for full experience, projects, and education details.
+              Open the PDF file of my Resume in a new tab.
             </p>
             <a
               className="preview-resume-link"
               href={resumeHref}
-              target={resumeHref.startsWith('http') ? '_blank' : undefined}
-              rel={resumeHref.startsWith('http') ? 'noreferrer' : undefined}
+              target={resumeOpensNewTab ? '_blank' : undefined}
+              rel={resumeOpensNewTab ? 'noreferrer' : undefined}
             >
-              Open Resume
+              <FontAwesomeIcon icon={faFilePdf} className="preview-resume-link-icon" aria-hidden />
+              <span className="preview-resume-link-text">Open resume</span>
+              <FontAwesomeIcon icon={faArrowUpRightFromSquare} className="preview-resume-link-external" aria-hidden />
             </a>
           </article>
         </section>
@@ -719,7 +816,10 @@ function App() {
       <section className="window-panel terminal-panel">
         <div className="window-shell">
           <div className="window-titlebar" aria-hidden="true">
-            <div className="window-tab">PowerShell</div>
+            <div className="window-tab">
+              <FontAwesomeIcon icon={faTerminal} className="window-tab-icon" />
+              <span className="window-tab-label">Autobhat Terminal</span>
+            </div>
           </div>
 
           <div className="window-body terminal-body">
@@ -737,14 +837,14 @@ function App() {
                       {line.text}
                     </>
                   ) : (
-                    line.text
+                    renderTerminalLine(line)
                   )}
                 </p>
               ))}
               {activeTypingLines.map((entry) => {
                 return (
                   <p key={entry.id} className={`line-${entry.line.kind} line-typing-active`}>
-                    {entry.line.text.slice(0, entry.visibleChars)}
+                    {renderTerminalLine(entry.line, entry.visibleChars)}
                   </p>
                 );
               })}
@@ -771,7 +871,10 @@ function App() {
       <aside className="window-panel preview-panel">
         <div className="window-shell">
           <div className="window-titlebar" aria-hidden="true">
-            <div className="window-tab">Preview</div>
+            <div className="window-tab">
+              <FontAwesomeIcon icon={previewTabIcon} className="window-tab-icon" />
+              <span className="window-tab-label">{previewTabLabel}</span>
+            </div>
           </div>
           <div className="window-body preview-body">
             <div

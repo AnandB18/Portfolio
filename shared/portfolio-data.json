@@ -19,32 +19,70 @@
   "projects": [
     {
       "id": "portfolio",
-      "title": "Terminal Portfolio",
-      "summary": "Interactive terminal-inspired portfolio with command routing and animated preview panels.",
+      "title": "Terminal Portfolio (CLI/TUI in progress)",
+      "summaryLines": [
+        "Keyboard-first terminal portfolio built with React, TypeScript, and Vite.",
+        "Command routing, history, autocomplete, and a richer preview pane.",
+        "Go CLI/TUI in progress—reuses the same exported JSON as the web app.",
+        "Deployed web build is the stable baseline while the TUI catches up."
+      ],
       "stack": [
         "React",
         "TypeScript",
+        "Vite",
+        "Go",
         "CSS"
       ]
     },
     {
       "id": "shell",
-      "title": "Mini Shell",
-      "summary": "Custom command-line shell with built-in commands, execution flow, and process handling.",
+      "title": "Mini Shell (msh)",
+      "summaryLines": [
+        "Minimal Unix shell written in C for GWU Systems Programming.",
+        "Pipelines, fork/exec, redirection, and foreground/background jobs.",
+        "Handles SIGINT, SIGTSTP, and SIGCHLD for sane Ctrl+C / Ctrl+Z behavior.",
+        "Interactive input via Linenoise; focus on process control and pipes."
+      ],
       "stack": [
         "C",
-        "Linux",
-        "Systems Programming"
+        "POSIX",
+        "GNU Make",
+        "Linenoise"
       ]
     },
     {
       "id": "gcal-planner",
-      "title": "Task Manager App",
-      "summary": "Planner app for organizing tasks and integrating schedules with a clear workflow.",
+      "title": "GCal Planner",
+      "summaryLines": [
+        "Links goals → projects → tasks with Google Calendar and Google Tasks.",
+        "Stack: Next.js, TypeScript, Prisma, PostgreSQL, Auth.js (Google OAuth).",
+        "Incremental task sync, dashboard views, and calendar-backed scheduling.",
+        "MVP is usable; polish continues and pace is slow while paused."
+      ],
+      "stack": [
+        "Next.js",
+        "TypeScript",
+        "Prisma",
+        "PostgreSQL",
+        "Auth.js",
+        "Google APIs",
+        "Tailwind CSS"
+      ]
+    },
+    {
+      "id": "kanban-board",
+      "title": "Kanban MVP",
+      "summaryLines": [
+        "Dark-themed Kanban board with drag-and-drop columns.",
+        "Task CRUD and workflows backed by Supabase auth and storage.",
+        "Built with React, TypeScript, Vite, and dnd-kit."
+      ],
       "stack": [
         "React",
-        "Firebase",
-        "API"
+        "TypeScript",
+        "Vite",
+        "Supabase",
+        "dnd-kit"
       ]
     }
   ],
@@ -60,19 +98,15 @@
     "  Worked on a project to create a data structures and algorithms library that is easy to learn and use."
   ],
   "educationLines": [
-    "Bachelor of Science in Computer Science | The George Washington University | expected graduation: May 2027",
+    "Bachelor of Science in Computer Science | The George Washington University | Expected Graduation: May 2027",
     "  Location: Washington, DC",
-    "  GPA: 3.8",
-    "  Honors: Dean's List, President's List",
-    "  Coursework: Data Structures, Algorithms, Operating Systems, Computer Architecture, Computer Networks, Database Systems, Software Engineering",
-    "  some highlights....",
-    "  some more highlishts...",
-    "  some more highlights...",
+    "  GPA: Technical 3.96 | Cumulative 3.83",
+    "  Honors: Tau Beta Pi Engineering Honors Society (Fall 2025 - Present), 2025 Outstanding Academic Achievement Award, Dean's List (Fall 2023, Spring 2024, Fall 2024, Spring 2025), Presidential Scholarship Academic Recipient",
+    "  Coursework: Intro to AI, Intro to Systems Programming, Intro to Computer Security, Operating Systems, Computer Architecture, Algorithms and Data Structures",
     "Study Abroad | University College Dublin | January 2026 - May 2026",
     "  Location: Dublin, Ireland",
-    "  some highlights....",
-    "  some more highlishts...",
-    "  some more highlights..."
+    "  I chose study abroad first and foremost to travel, experience a new cultureimage.png, and learn outside a typical classroom setting.",
+    "  Dublin also sits in a growing European tech hub, so I was excited to take classes and explore the city while seeing how industry and startups show up day to day."
   ],
   "contacts": [
     {

@@ -23,7 +23,7 @@ type SharedPortfolioData = {
   projects: Array<{
     id: string;
     title: string;
-    summary?: string;
+    summaryLines?: string[];
     stack?: string[];
   }>;
   experienceLines: string[];
@@ -75,7 +75,7 @@ const buildPayload = (): SharedPortfolioData => ({
   projects: PROJECTS.map((project) => ({
     id: project.id,
     title: project.title,
-    summary: project.summary,
+    summaryLines: project.summaryLines,
     stack: project.stack,
   })),
   experienceLines: toExperienceLines(),

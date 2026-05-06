@@ -12,7 +12,9 @@ export type CommandDefinition = {
 export type Project = {
   id: string;
   title: string;
-  summary?: string;
+  status?: 'current' | 'completed';
+  /** Short bullet-sized lines for the preview card (easier to scan than one long paragraph). */
+  summaryLines?: string[];
   stack?: string[];
   imageKey?: string;
   imageAlt?: string;
@@ -66,9 +68,17 @@ export type TerminalLineKind =
   | 'hint'
   | 'error';
 
+export type TerminalSegmentTone = 'default' | 'hint' | 'project' | 'project-link';
+
+export type TerminalSegment = {
+  text: string;
+  tone?: TerminalSegmentTone;
+};
+
 export type TerminalLine = {
   text: string;
   kind: TerminalLineKind;
+  segments?: TerminalSegment[];
 };
 
 export type CurrentlyItem = {
@@ -79,4 +89,35 @@ export type CurrentlyItem = {
   imageKey?: string;
   imageAlt?: string;
   href?: string;
+};
+
+export type TerminalProjectItem = {
+  name: string;
+  githubUrl: string;
+  summary: string;
+};
+
+export type TerminalExperienceItem = {
+  titleAndTimeframe: string;
+  description: string;
+};
+
+export type TerminalEducationItem = {
+  titleAndTimeframe: string;
+  description: string;
+};
+
+export type TerminalHelpItem = {
+  command: string;
+  description: string;
+};
+
+/** Single source for `whoami` terminal output; runner turns this into styled lines. */
+export type TerminalWhoami = {
+  displayName: string;
+  /** Degree, school, and timing—shown after the name on line 1. */
+  credentials: string;
+  tagline: string;
+  /** Shown as `Try: a, b, c` with command names highlighted. */
+  suggestedCommands: readonly string[];
 };

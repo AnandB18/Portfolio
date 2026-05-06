@@ -7,10 +7,10 @@ import (
 )
 
 type Project struct {
-	ID      string   `json:"id"`
-	Title   string   `json:"title"`
-	Summary string   `json:"summary"`
-	Stack   []string `json:"stack"`
+	ID           string   `json:"id"`
+	Title        string   `json:"title"`
+	SummaryLines []string `json:"summaryLines"`
+	Stack        []string `json:"stack"`
 }
 
 type Contact struct {
@@ -58,15 +58,25 @@ func loadPortfolioData() PortfolioData {
 		Projects: []Project{
 			{
 				ID:      "portfolio",
-				Title:   "Terminal Portfolio",
-				Summary: "Interactive terminal-style portfolio with command routing and preview modes.",
-				Stack:   []string{"React", "TypeScript", "CSS"},
+				Title:   "Terminal Portfolio (CLI/TUI in progress)",
+				SummaryLines: []string{
+					"Keyboard-first terminal portfolio built with React, TypeScript, and Vite.",
+					"Command routing, history, autocomplete, and a richer preview pane.",
+					"Go CLI/TUI in progress—reuses the same exported JSON as the web app.",
+					"Deployed web build is the stable baseline while the TUI catches up.",
+				},
+				Stack: []string{"React", "TypeScript", "Vite", "Go", "CSS"},
 			},
 			{
 				ID:      "shell",
-				Title:   "Mini Shell",
-				Summary: "Custom shell with built-in commands, execution flow, and process handling.",
-				Stack:   []string{"C", "Linux", "Systems Programming"},
+				Title:   "Mini Shell (msh)",
+				SummaryLines: []string{
+					"Minimal Unix shell written in C for GWU Systems Programming.",
+					"Pipelines, fork/exec, redirection, and foreground/background jobs.",
+					"Handles SIGINT, SIGTSTP, and SIGCHLD for sane Ctrl+C / Ctrl+Z behavior.",
+					"Interactive input via Linenoise; focus on process control and pipes.",
+				},
+				Stack: []string{"C", "POSIX", "GNU Make", "Linenoise"},
 			},
 		},
 		ExperienceLines: []string{

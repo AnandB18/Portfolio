@@ -1,14 +1,10 @@
 import {
-  ABOUT_LINES,
-  CONTACT,
-  EDUCATION,
-  EDUCATION_HEADER,
-  EXPERIENCE,
-  EXPERIENCE_HEADER,
-  PROJECTS,
-  PROJECTS_FOOTER,
-  PROJECTS_HEADER,
-  RESUME_HEADER,
+  TERMINAL_EDUCATION_ITEMS,
+  TERMINAL_EXPERIENCE_ITEMS,
+  TERMINAL_HELP_ITEMS,
+  TERMINAL_PROJECT_ITEMS,
+  TERMINAL_RESUME_LINES,
+  terminalWhoamiAsStrings,
 } from './data';
 import type { CommandDefinition } from './types';
 
@@ -16,10 +12,10 @@ import type { CommandDefinition } from './types';
 export const COMMANDS: Record<string, CommandDefinition> = {
   help: {
     description: 'Show available commands',
-    run: () => [
-      'Available commands:',
-      ...Object.entries(COMMANDS).map(([name, def]) => `- ${name}: ${def.description}`),
-    ],
+    run: () => {
+      const commandColumnWidth = 20;
+      return TERMINAL_HELP_ITEMS.map((item) => `${item.command.padEnd(commandColumnWidth)}${item.description}`);
+    },
   },
   clear: {
     description: 'Clear terminal output',
@@ -30,61 +26,25 @@ export const COMMANDS: Record<string, CommandDefinition> = {
   },
   whoami: {
     description: 'Learn about me',
-    run: () => ABOUT_LINES,
+    run: () => terminalWhoamiAsStrings(),
   },
   projects: {
     description: 'List available projects',
-    run: () => [
-      PROJECTS_HEADER,
-      ...PROJECTS.map((p) => `- ${p.id}: ${p.title}`),
-      PROJECTS_FOOTER,
-    ],
+    run: () => TERMINAL_PROJECT_ITEMS.map((item) => `${item.name}: ${item.githubUrl} - ${item.summary}`),
   },
   experience: {
     description: 'Show work experience',
-    run: () => [
-      EXPERIENCE_HEADER,
-      ...EXPERIENCE.flatMap((item) => [
-        `- ${item.role} | ${item.org} | ${item.period}`,
-        ...item.highlights.map((point) => `  ${point}`),
-      ]),
-    ],
+    run: () =>
+      TERMINAL_EXPERIENCE_ITEMS.flatMap((item) => [item.titleAndTimeframe, `\t${item.description}`]),
   },
   education: {
     description: 'Show education background',
-    run: () => [
-      EDUCATION_HEADER,
-      ...EDUCATION.flatMap((item) => {
-        const gpaTerminalLine =
-          item.gpaTechnical || item.gpaCumulative
-            ? `  GPA: ${[
-                item.gpaTechnical ? `Technical ${item.gpaTechnical}` : '',
-                item.gpaCumulative ? `Cumulative ${item.gpaCumulative}` : '',
-              ]
-                .filter(Boolean)
-                .join(' | ')}`
-            : item.gpa
-              ? `  GPA: ${item.gpa}`
-              : null;
-
-        return [
-        `- ${item.program} | ${item.school} | ${item.period}`,
-        ...(item.location ? [`  Location: ${item.location}`] : []),
-        ...(gpaTerminalLine ? [gpaTerminalLine] : []),
-        ...(item.honors?.length ? [`  Honors: ${item.honors.join(', ')}`] : []),
-        ...(item.coursework?.length ? [`  Coursework: ${item.coursework.join(', ')}`] : []),
-        ...(item.highlights ?? []).map((point) => `  ${point}`),
-        ];
-      }),
-    ],
+    run: () =>
+      TERMINAL_EDUCATION_ITEMS.flatMap((item) => [item.titleAndTimeframe, `\t${item.description}`]),
   },
   resume: {
     description: 'Open my resume',
-    run: () => {
-      const resumeItem = CONTACT.find((item) => item.label.toLowerCase() === 'resume');
-      const resumeValue = resumeItem?.value ?? 'Resume link coming soon.';
-      return [RESUME_HEADER, `- ${resumeValue}`];
-    },
+    run: () => TERMINAL_RESUME_LINES,
   },
 };
 

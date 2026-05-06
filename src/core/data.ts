@@ -1,29 +1,113 @@
-import type { ContactLink, Experience, Project, CurrentlyItem, Education } from './types';
+import type {
+  ContactLink,
+  Experience,
+  Project,
+  CurrentlyItem,
+  Education,
+  TerminalProjectItem,
+  TerminalExperienceItem,
+  TerminalEducationItem,
+  TerminalHelpItem,
+  TerminalWhoami,
+} from './types';
+import resumePdfUrl from '../assets/AnandBhatResume.pdf';
 
 export const ASCII_HEADER: string[] = [
-  '  ____             __  _____      ___      ',
-  ' / __ \\____  _____/ /_/ __(_)____/ (_)___ _',
-  '/ /_/ / __ \\/ ___/ __/ /_/ / ___/ / / __ `/',
-  '/ ____/ /_/ / /  / /_/ __/ / /  / / / /_/ / ',
-  '/_/    \\____/_/   \\__/_/ /_/_/  /_/_/\\__,_/',
+    '                                                       ___',
+    ' o__      ┌─┐┌┐╷┌─┐┌┐╷╶┬┐   ┌┐ ╷ ╷┌─┐╶┬╴      o__     |   |\\',
+    '/|        ├─┤│└┤├─┤│└┤ ││   ├┴┐├─┤├─┤ │       /\\      |   |X\\',
+    '/ > o     ╵ ╵╵ ╵╵ ╵╵ ╵╶┴┘   └─┘╵ ╵╵ ╵ ╵        <\\     |   |XX\\',
+   
 ];
 
-export const ABOUT_LINES: string[] = [
-  'I am Anand...',
-  'This portfolio is a terminal-inspired interface.',
-  'Try: projects, experience, contact',
+/**
+ * Terminal `whoami` copy—structured so the runner can emphasize name + command hints.
+ * Keep preview-rich content in ABOUT_PREVIEW / defaults below.
+ */
+export const TERMINAL_WHOAMI: TerminalWhoami = {
+  displayName: 'Anand Bhat',
+  credentials: 'BS Computer Science @ George Washington University · Expected May 2027',
+  tagline: 'Focus: Systems, security, and practical software engineering. From kernels and protocols to things people actually use.',
+  suggestedCommands: ['education', 'experience', 'projects'],
+};
+
+/** Plain strings for the command registry / anything that needs a flat list. */
+export const terminalWhoamiAsStrings = (): string[] => {
+  const w = TERMINAL_WHOAMI;
+  return [ `${w.displayName} · ${w.credentials}`, w.tagline, `Try: ${w.suggestedCommands.join(', ')}` ];
+};
+
+export const TERMINAL_HELP_ITEMS: TerminalHelpItem[] = [
+  { command: 'help', description: 'Show available commands' },
+  { command: 'clear', description: 'Clear terminal output' },
+  { command: 'whoami', description: 'Learn about me' },
+  { command: 'education', description: 'Show education background' },
+  { command: 'experience', description: 'Show work experience' },
+  { command: 'projects', description: 'List available projects' },
+  { command: 'resume', description: 'Open my resume' },
 ];
 
 export const PREVIEW_DEFAULT_NAME = 'Anand Bhat';
 export const PREVIEW_DEFAULT_ROLE = 'Computer Science Student @ George Washington University';
-export const PREVIEW_DEFAULT_TAGLINE = 'Focused on systems, cybersecurity, and practical software engineering.';
-export const PREVIEW_DEFAULT_COMMANDS = 'Try: whoami, experience, or projects to learn more about me.';
+export const PREVIEW_DEFAULT_TAGLINE =
+  'Systems, security, and practical software engineering—from low-level systems to user-facing apps.';
+export const PREVIEW_DEFAULT_COMMANDS = 'Run: whoami, experience, or projects to learn more about me or help to explore the portfolio.';
 
-export const PROJECTS_HEADER = 'Projects:';
-export const PROJECTS_FOOTER = 'Project details panel wiring comes next.';
-export const EXPERIENCE_HEADER = 'Experience:';
-export const EDUCATION_HEADER = 'Education:';
-export const RESUME_HEADER = 'Resume:';
+export const TERMINAL_PROJECT_ITEMS: TerminalProjectItem[] = [
+  {
+    name: 'portfolio',
+    githubUrl: 'github.com/AnandB18/Portfolio',
+    summary: 'Terminal-style portfolio app (React/TypeScript, Go TUI in progress).',
+  },
+  {
+    name: 'gcal-planner',
+    githubUrl: 'github.com/AnandB18/gcal_planner',
+    summary: 'Goal-to-task planning with Google Calendar and Google Tasks integration.',
+  },
+  {
+    name: 'shell',
+    githubUrl: 'github.com/AnandB18/mini_shell',
+    summary: 'Mini Unix shell in C focused on pipes, job control, and signals.',
+  },
+  {
+    name: 'kanban-board',
+    githubUrl: 'github.com/AnandB18/Kanban_Board',
+    summary: 'Drag-and-drop task board with a Supabase-backed workflow.',
+  },
+];
+
+export const TERMINAL_EXPERIENCE_ITEMS: TerminalExperienceItem[] = [
+  {
+    titleAndTimeframe: 'Undergraduate Research Fellow | May 2026 - Present',
+    description: 'UAV anomaly detection research at the Security and Systems Lab.',
+  },
+  {
+    titleAndTimeframe: 'Intro to Systems Programming TA | Jun 2025 - Dec 2025',
+    description: 'Mentored 30+ students in C, memory, and process control.',
+  },
+  {
+    titleAndTimeframe: 'Intro to Algorithms and Data Structures TA | Jun 2024 - Dec 2025',
+    description: 'Led labs and coached students on implementation/debugging workflows.',
+  },
+];
+
+export const TERMINAL_EDUCATION_ITEMS: TerminalEducationItem[] = [
+  {
+    titleAndTimeframe: 'The George Washington University | BS in Computer Science | Expected: May 2027',
+    description: 'Technical GPA: 3.96 | Cumulative GPA: 3.83',
+  },
+  {
+    titleAndTimeframe: 'University College Dublin | Study Abroad | Jan 2026 - May 2026',
+    description: 'Semester abroad focused on new coursework and cross-cultural learning.',
+  },
+];
+
+/** Bundled resume PDF URL (Vite); use for preview + any download/open links. */
+export const RESUME_PDF_URL = resumePdfUrl;
+
+export const TERMINAL_RESUME_LINES: string[] = [
+  'Click to open my resume in a new tab.',
+];
 
 export const ABOUT_PREVIEW = {
   imageAlt: 'Photo of Anand Bhat',
@@ -53,55 +137,95 @@ export const SOCIAL_LINKS = [
 export const PROJECTS: Project[] = [
   {
     id: 'portfolio',
-    title: 'Terminal Portfolio',
-    summary: 'Interactive terminal-inspired portfolio with command routing and animated preview panels.',
-    stack: ['React', 'TypeScript', 'CSS'],
+    title: 'Terminal Portfolio (CLI/TUI in progress)',
+    status: 'current',
+    summaryLines: [
+      'Keyboard-first terminal portfolio built with React, TypeScript, and Vite.',
+      'Command routing, history, autocomplete, and a richer preview pane.',
+      'Go CLI/TUI in progress—reuses the same exported JSON as the web app.',
+      'Deployed web build is the stable baseline while the TUI catches up.',
+    ],
+    stack: ['React', 'TypeScript', 'Vite', 'Go', 'CSS'],
     imageKey: 'project-portfolio',
-    imageAlt: 'Terminal Portfolio preview image',
-    repoUrl: 'https://github.com/your-handle/terminal-portfolio',
+    imageAlt: 'Terminal Portfolio — web UI plus Go TUI scaffold',
+    repoUrl: 'https://github.com/AnandB18/Portfolio',
   },
   {
     id: 'shell',
-    title: 'Mini Shell',
-    summary: 'Custom command-line shell with built-in commands, execution flow, and process handling.',
-    stack: ['C', 'Linux', 'Systems Programming'],
+    title: 'Mini Shell (msh)',
+    status: 'completed',
+    summaryLines: [
+      'Minimal Unix shell written in C for GWU Systems Programming.',
+      'Pipelines, fork/exec, redirection, and foreground/background jobs.',
+      'Handles SIGINT, SIGTSTP, and SIGCHLD for sane Ctrl+C / Ctrl+Z behavior.',
+      'Interactive input via Linenoise; focus on process control and pipes.',
+    ],
+    stack: ['C', 'POSIX', 'GNU Make', 'Linenoise'],
     imageKey: 'project-shell',
-    imageAlt: 'Mini shell project preview image',
-    repoUrl: 'https://github.com/your-handle/mini-shell',
+    imageAlt: 'Mini Shell (msh) — Unix shell project',
+    repoUrl: 'https://github.com/AnandB18/mini_shell',
   },
   {
     id: 'gcal-planner',
-    title: 'Task Manager App',
-    summary: 'Planner app for organizing tasks and integrating schedules with a clear workflow.',
-    stack: ['React', 'Firebase', 'API'],
+    title: 'GCal Planner',
+    status: 'current',
+    summaryLines: [
+      'Links goals → projects → tasks with Google Calendar and Google Tasks.',
+      'Incremental task sync, dashboard views, and calendar-backed scheduling.',
+      'MVP is usable; polish continues and pace is slow while paused.',
+    ],
+    stack: ['Next.js', 'TypeScript', 'Prisma', 'PostgreSQL', 'Auth.js', 'Google APIs', 'Tailwind CSS'],
     imageKey: 'project-planner',
-    imageAlt: 'Task manager app preview image',
-    repoUrl: 'https://github.com/your-handle/task-manager-app',
-    liveUrl: 'https://example.com',
+    imageAlt: 'GCal Planner — Google Calendar & Tasks sync',
+    repoUrl: 'https://github.com/AnandB18/gcal_planner',
+  },
+  {
+    id: 'kanban-board',
+    title: 'Kanban MVP',
+    status: 'completed',
+    summaryLines: [
+      'Dark-themed Kanban board with drag-and-drop columns.',
+      'Task CRUD and workflows backed by Supabase auth and storage.',
+      'Built with React, TypeScript, Vite, and dnd-kit.',
+    ],
+    stack: ['React', 'TypeScript', 'Vite', 'Supabase', 'dnd-kit'],
+    repoUrl: 'https://github.com/AnandB18/Kanban_Board',
+    liveUrl: 'https://kanban-board-ebon-eta.vercel.app/',
   },
 ];
 
 export const EXPERIENCE: Experience[] = [
   {
     id: 'research-fellow',
-    role: 'Research Fellow ',
+    role: 'Undergraduate Research Fellow',
     org: 'The George Washington University',
     period: 'May 2026 - Present',
-    highlights: ['Built security tools for detecting if drones are compromised.', 'Worked on a project to detect if a drone is compromised by analyzing the drone\'s behavior and data.'],
+    highlights: [
+      'Selected for GWU\'s Summer Undergraduate Program for Engineering Research (SUPER).',
+      'Researching UAV anomaly detection under the guidance of Dr. Sibin Mohan.',
+    ],
   },
   {
     id: 'teaching-assistant-systems',
     role: 'Intro to Systems Programming Teaching Assistant',
-    org: 'The George Washington University',
+    org: 'GWU School of Engineering & Applied Science',
     period: 'June 2025 - December 2025',
-    highlights: ['Taught students the basics of systems programming while also teaching basic C concepts and syntax.', 'Worked on a project to create a system programming language that is easy to learn and use.'],
+    highlights: [
+      'Mentored 30+ students in core systems concepts, including C programming, pointers, memory management, and process control.',
+      'Led my own lab section, teaching core concepts and walking students through implementation and debugging strategies.',
+      'Collaborated with course staff to refine labs and instructional materials, aligning weekly objectives across sections.',
+    ],
   },
   {
     id: 'teaching-assistant-ads',
-    role: 'Algorithms And Data Structures Teaching Assistant',
-    org: 'The George Washington University',
-    period: 'June 2024 - June 2025',
-    highlights: ['Taught students the basics of algorithsm and data structures using Java', 'Worked on a project to create a data structures and algorithms library that is easy to learn and use.'],
+    role: 'Intro to Algorithms and Data Structures Teaching Assistant',
+    org: 'GWU School of Engineering & Applied Science',
+    period: 'June 2024 - December 2025',
+    highlights: [
+      'Mentored 30+ students to strengthen conceptual understanding of fundamental data structures and algorithms through Java.',
+      'Led my own lab section, teaching problem-solving approaches and guiding students through implementation and debugging workflows.',
+      'Partnered with faculty and fellow TAs to refine coursework, develop lab materials, and align weekly instructional goals.',
+    ],
   },
 ];
 
@@ -124,7 +248,7 @@ export const EDUCATION: Education[] = [
     period: 'January 2026 - May 2026',
     location: 'Dublin, Ireland',
     highlights: [
-      'I chose study abroad first and foremost to travel, experience a new cultureimage.png, and learn outside a typical classroom setting.',
+      'I chose study abroad first and foremost to travel, experience a new culture, and learn outside a typical classroom setting.',
       'Dublin also sits in a growing European tech hub, so I was excited to take classes and explore the city while seeing how industry and startups show up day to day.',
     ],
   }

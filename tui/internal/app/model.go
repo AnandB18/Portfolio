@@ -7,6 +7,13 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 )
 
+func projectSummaryLines(p Project) []string {
+	if len(p.SummaryLines) > 0 {
+		return p.SummaryLines
+	}
+	return []string{"No description."}
+}
+
 type lineKind string
 
 const (
@@ -215,7 +222,9 @@ func (m *model) openProject(id string) bool {
 		m.switchToTab("projects")
 		m.projectDetail = project.ID
 		m.emit(lineOutput, fmt.Sprintf("%s (%s)", project.Title, project.ID))
-		m.emit(lineOutput, project.Summary)
+		for _, line := range projectSummaryLines(project) {
+			m.emit(lineOutput, "• "+line)
+		}
 		m.emit(lineOutput, "Stack: "+strings.Join(project.Stack, ", "))
 		return true
 	}
@@ -395,15 +404,12 @@ func (m model) previewBody() string {
 		if m.projectDetail != "" {
 			for _, p := range data.Projects {
 				if p.ID == m.projectDetail {
-					return strings.Join([]string{
-						p.Title,
-						"",
-						p.Summary,
-						"",
-						"Stack: " + strings.Join(p.Stack, ", "),
-						"",
-						"Press Esc to leave detail view.",
-					}, "\n")
+					lines := []string{p.Title, ""}
+					for _, line := range projectSummaryLines(p) {
+						lines = append(lines, "• "+line)
+					}
+					lines = append(lines, "", "Stack: "+strings.Join(p.Stack, ", "), "", "Press Esc to leave detail view.")
+					return strings.Join(lines, "\n")
 				}
 			}
 		}
