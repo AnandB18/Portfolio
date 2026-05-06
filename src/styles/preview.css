@@ -383,25 +383,83 @@
   background: rgba(8, 14, 10, 0.12);
 }
 
-.preview-ctf-bottom-bar {
-  position: absolute;
-  left: 0.62rem;
-  right: 0.62rem;
-  bottom: 0.62rem;
+.preview-ctf-bottom-rail {
+  left: 0;
+  right: 0;
   margin-top: 0;
-  border: 1px solid rgba(159, 124, 236, 0.3);
-  border-radius: 9px;
+  width: 100%;
+  border: 0;
+  padding: 0.5rem 0.62rem;
+  background: transparent;
+  cursor: pointer;
+  text-align: left;
+  font: inherit;
+  z-index: 5;
+}
+
+.preview-ctf-bottom-rail.is-absolute {
+  position: absolute;
+  bottom: 0;
+}
+
+.preview-ctf-bottom-rail.is-sticky {
+  position: sticky;
+  bottom: 0.5rem;
+}
+
+.preview-ctf-bottom-card {
+  border: 1px solid rgba(179, 145, 252, 0.62);
+  border-radius: 10px;
   padding: 0.32rem 0.62rem;
-  background: rgba(55, 34, 89, 0.25);
-  color: #dac8ff;
+  background: rgba(34, 22, 58, 0.9);
+  color: #eadbff;
   font-size: 0.75rem;
   display: flex;
   justify-content: space-between;
   gap: 0.6rem;
-  cursor: pointer;
-  text-align: left;
-  font: inherit;
-  z-index: 3;
+  box-shadow:
+    0 6px 16px rgba(9, 6, 18, 0.4),
+    0 2px 4px rgba(0, 0, 0, 0.22);
+}
+
+.preview-output.preview-ctf-needs-scroll .preview-output-scroll {
+  padding-bottom: 3.35rem;
+}
+
+.preview-ctf-bottom-label {
+  display: grid;
+  gap: 0.1rem;
+  align-content: center;
+}
+
+.preview-ctf-bottom-toggle {
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.32rem;
+  justify-content: flex-end;
+  min-width: 6.4rem;
+}
+
+.preview-ctf-drawer {
+  position: absolute;
+  left: 0.62rem;
+  right: 0.62rem;
+  bottom: 2.95rem;
+  height: 74%;
+  z-index: 4;
+  border-radius: 12px;
+  border: 1px solid rgba(161, 130, 236, 0.36);
+  background: linear-gradient(165deg, rgba(16, 20, 33, 0.97) 0%, rgba(8, 12, 20, 0.96) 100%);
+  box-shadow:
+    0 16px 28px rgba(4, 8, 18, 0.52),
+    0 8px 12px rgba(4, 8, 18, 0.34);
+  backdrop-filter: blur(2px);
+  overflow: auto;
+}
+
+.preview-ctf-drawer .preview-ctf {
+  min-height: 100%;
 }
 
 .preview-about {
@@ -1144,7 +1202,7 @@
 }
 
 .preview-currently {
-  margin-top: 2rem;
+  margin-top: 1rem;
   z-index: 1;
 }
 

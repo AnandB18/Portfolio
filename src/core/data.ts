@@ -45,7 +45,7 @@ export const TERMINAL_HELP_ITEMS: TerminalHelpItem[] = [
   { command: 'projects', description: 'List available projects' },
   { command: 'resume', description: 'Open my resume' },
   { command: 'ctf', description: 'Enter mini CTF mode' },
-  { command: 'quit', description: 'Exit CTF mode when in it'}
+  { command: 'quit', description: 'Exit CTF mode when in it' }
 ];
 
 export const CTF_CHALLENGES: readonly CtfChallengeDefinition[] = [

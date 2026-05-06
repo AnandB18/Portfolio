@@ -152,6 +152,7 @@ function App() {
     return parseCtfProgress(window.localStorage.getItem(CTF_STORAGE_KEY));
   });
   const [ctfExpanded, setCtfExpanded] = useState(false);
+  const [ctfBottomMode, setCtfBottomMode] = useState<'absolute' | 'sticky'>('absolute');
   const previewTabLabel =
     previewState === 'default'
       ? 'Welcome'
@@ -210,6 +211,16 @@ function App() {
       normalizePreviewScroll();
     });
   }, [normalizePreviewScroll]);
+
+  const syncCtfBottomMode = useCallback(() => {
+    const el = previewOutputRef.current;
+    if (!el || !ctfProgress.inMode) {
+      setCtfBottomMode('absolute');
+      return;
+    }
+    const needsScroll = el.scrollHeight > el.clientHeight + 1;
+    setCtfBottomMode(needsScroll ? 'sticky' : 'absolute');
+  }, [ctfProgress.inMode]);
 
   const handleCourseworkMouseEnter = useCallback((itemId: string) => {
     setCourseworkManualById((prev) => ({ ...prev, [itemId]: true }));
@@ -359,8 +370,12 @@ function App() {
 
     setCommandHistory((prev) => [...prev, trimmed]);
     setHistoryIndex(-1);
+    const echoCommand = () => {
+      setHistory((prev) => [...prev, { text: trimmed, kind: 'command' }]);
+    };
 
     if (command === 'ctf') {
+      echoCommand();
       setCtfProgress((prev) => ({ ...prev, inMode: true }));
       setPreviewState('ctf');
       setPreviewEffect('pulse');
@@ -372,13 +387,14 @@ function App() {
     }
 
     if (command === 'quit') {
+      echoCommand();
       if (!ctfProgress.inMode) {
         pushTerminalOutput([{ text: 'Not in CTF mode. Run ctf to start.', kind: 'hint' }]);
         return;
       }
       setCtfProgress((prev) => ({ ...prev, inMode: false }));
       setCtfExpanded(false);
-      setPreviewState('default');
+      setPreviewState(previewState === 'ctf' ? 'default' : previewState);
       setPreviewEffect('idle');
       pushTerminalOutput([{ text: 'Exited CTF mode. Progress saved.', kind: 'system' }]);
       return;
@@ -386,13 +402,13 @@ function App() {
 
     if (ctfProgress.inMode) {
       if (command === 'help') {
+        echoCommand();
         pushTerminalOutput(getCtfHelpLines());
-        setPreviewState('ctf');
-        setPreviewEffect('pulse');
         return;
       }
 
       if (command === 'status') {
+        echoCommand();
         const stateLabel = (id: CtfChallengeId) =>
           ctfProgress.solved[id] ? 'completed' : ctfProgress.currentChallenge === id ? 'active' : 'locked';
         pushTerminalOutput([
@@ -401,11 +417,11 @@ function App() {
           { text: `Challenge 2: ${stateLabel(2)}`, kind: 'output' },
           { text: `Challenge 3: ${stateLabel(3)}`, kind: 'output' },
         ]);
-        setPreviewState('ctf');
         return;
       }
 
       if (command === 'challenge') {
+        echoCommand();
         const requested = Number(args[0] ?? ctfProgress.currentChallenge) as CtfChallengeId;
         const valid = requested === 1 || requested === 2 || requested === 3;
         if (!valid) {
@@ -417,19 +433,19 @@ function App() {
           return;
         }
         setCtfProgress((prev) => ({ ...prev, currentChallenge: requested }));
-        setPreviewState('ctf');
         pushTerminalOutput([{ text: `Loaded Challenge ${requested}: ${getCtfChallengeById(requested).title}`, kind: 'system' }]);
         return;
       }
 
       if (command === 'hint') {
+        echoCommand();
         const level = Number(args[0] ?? ctfProgress.revealedHints[ctfProgress.currentChallenge] + 1);
         pushTerminalOutput(revealHint(ctfProgress.currentChallenge, level));
-        setPreviewState('ctf');
         return;
       }
 
       if (command === 'submit') {
+        echoCommand();
         const submitted = args.join(' ').trim();
         if (!submitted) {
           pushTerminalOutput([{ text: 'Usage: submit <flag>', kind: 'hint' }]);
@@ -460,15 +476,13 @@ function App() {
                 { text: `Challenge ${(ctfProgress.currentChallenge + 1) as CtfChallengeId} unlocked.`, kind: 'hint' },
               ]
         );
-        setPreviewState('ctf');
-        setPreviewEffect('spike');
         return;
       }
 
       if (command === 'restart') {
+        echoCommand();
         setCtfProgress({ ...DEFAULT_CTF_PROGRESS, inMode: true });
         setCtfExpanded(false);
-        setPreviewState('ctf');
         pushTerminalOutput([{ text: 'CTF progress reset. Back to Challenge 1.', kind: 'system' }]);
         return;
       }
@@ -533,6 +547,97 @@ function App() {
     enqueueLines(typedLinesWithSpacing);
   };
 
+  const renderCtfPanelContent = () => {
+    const progressLabel = `Challenge ${ctfProgress.currentChallenge}/3 • ${ctfSolvedCount}/3 solved`;
+    return (
+      <section className={`preview-ctf ${ctfExpanded ? 'is-expanded' : ''}`} aria-label="CTF mode panel">
+        <div className="preview-ctf-top">
+          <div className="preview-ctf-header">
+            <h3 className="preview-ctf-title">Mini Web CTF</h3>
+          </div>
+          <p className="preview-ctf-rules">
+            Solve challenges in order. Use terminal commands, DevTools, and decoding where prompted. Use hint buttons for
+            progressively stronger clues.
+          </p>
+          <p className="preview-ctf-commands">
+            Commands: <span>ctf</span>, <span>status</span>, <span>challenge &lt;n&gt;</span>, <span>hint &lt;n&gt;</span>,{' '}
+            <span>submit &lt;flag&gt;</span>, <span>restart</span>, <span>quit</span>
+          </p>
+          <div className="preview-ctf-controls">
+            <button
+              type="button"
+              className="preview-ctf-restart"
+              onClick={() => runCommand('restart')}
+            >
+              Restart CTF
+            </button>
+            <span className="preview-ctf-progress">{progressLabel}</span>
+          </div>
+        </div>
+
+        <div className="preview-ctf-cards">
+          {CTF_CHALLENGES.map((challenge) => {
+            const status: 'locked' | 'active' | 'completed' =
+              ctfProgress.solved[challenge.id]
+                ? 'completed'
+                : challenge.id === ctfProgress.currentChallenge
+                  ? 'active'
+                  : challenge.id > ctfProgress.currentChallenge
+                    ? 'locked'
+                    : 'active';
+            const revealed = ctfProgress.revealedHints[challenge.id];
+            return (
+              <article
+                key={challenge.id}
+                className={`preview-ctf-card preview-ctf-card-${status}`}
+                aria-label={`Challenge ${challenge.id}`}
+              >
+                <header className="preview-ctf-card-head">
+                  <h4>{challenge.title}</h4>
+                  <span className={`preview-ctf-status preview-ctf-status-${status}`}>
+                    {status === 'completed' ? 'Completed' : status === 'active' ? 'Active' : 'Locked'}
+                  </span>
+                </header>
+                <p className="preview-ctf-card-desc">{challenge.description}</p>
+                <div className="preview-ctf-hints">
+                  {Array.from({ length: 5 }, (_, idx) => {
+                    const level = idx + 1;
+                    const isLockedByOrder = status === 'locked';
+                    const canOpenLevel = level <= revealed + 1;
+                    const isRevealed = level <= revealed;
+                    return (
+                      <button
+                        key={`${challenge.id}-hint-${level}`}
+                        type="button"
+                        className={`preview-ctf-hint-btn${isRevealed ? ' is-revealed' : ''}`}
+                        disabled={isLockedByOrder || !canOpenLevel}
+                        onClick={() => {
+                          pushTerminalOutput(revealHint(challenge.id, level));
+                        }}
+                      >
+                        {level}
+                      </button>
+                    );
+                  })}
+                </div>
+                {status === 'locked' ? (
+                  <div className="preview-ctf-lock-overlay" aria-hidden>
+                    <FontAwesomeIcon icon={faLock} />
+                  </div>
+                ) : null}
+                {status === 'completed' ? (
+                  <div className="preview-ctf-complete-overlay" aria-hidden>
+                    <FontAwesomeIcon icon={faCircleCheck} />
+                  </div>
+                ) : null}
+              </article>
+            );
+          })}
+        </div>
+      </section>
+    );
+  };
+
   const renderPreviewContent = () => {
     const getContactHref = (label: string, value: string) => {
       if (value.startsWith('http') || value.startsWith('mailto:')) return value;
@@ -576,104 +681,7 @@ function App() {
     };
 
     if (previewState === 'ctf') {
-      const progressLabel = `Challenge ${ctfProgress.currentChallenge}/3 • ${ctfSolvedCount}/3 solved`;
-      return (
-        <section className={`preview-ctf ${ctfExpanded ? 'is-expanded' : ''}`} aria-label="CTF mode">
-          <div className="preview-ctf-top">
-            <div className="preview-ctf-header">
-              <h3 className="preview-ctf-title">Mini Web CTF</h3>
-              <button
-                type="button"
-                className="preview-ctf-toggle"
-                onClick={() => setCtfExpanded((prev) => !prev)}
-                aria-expanded={ctfExpanded}
-              >
-                <FontAwesomeIcon icon={ctfExpanded ? faChevronDown : faChevronUp} aria-hidden />
-                {ctfExpanded ? 'Collapse' : 'Expand'}
-              </button>
-            </div>
-            <p className="preview-ctf-rules">
-              Solve challenges in order. Use terminal commands, DevTools, and decoding where prompted. Use hint buttons for
-              progressively stronger clues.
-            </p>
-            <p className="preview-ctf-commands">
-              Commands: <span>ctf</span>, <span>status</span>, <span>challenge &lt;n&gt;</span>, <span>hint &lt;n&gt;</span>,{' '}
-              <span>submit &lt;flag&gt;</span>, <span>restart</span>, <span>quit</span>
-            </p>
-            <div className="preview-ctf-controls">
-              <button
-                type="button"
-                className="preview-ctf-restart"
-                onClick={() => runCommand('restart')}
-              >
-                Restart CTF
-              </button>
-              <span className="preview-ctf-progress">{progressLabel}</span>
-            </div>
-          </div>
-
-          <div className="preview-ctf-cards">
-            {CTF_CHALLENGES.map((challenge) => {
-              const status: 'locked' | 'active' | 'completed' =
-                ctfProgress.solved[challenge.id]
-                  ? 'completed'
-                  : challenge.id === ctfProgress.currentChallenge
-                    ? 'active'
-                    : challenge.id > ctfProgress.currentChallenge
-                      ? 'locked'
-                      : 'active';
-              const revealed = ctfProgress.revealedHints[challenge.id];
-              return (
-                <article
-                  key={challenge.id}
-                  className={`preview-ctf-card preview-ctf-card-${status}`}
-                  aria-label={`Challenge ${challenge.id}`}
-                >
-                  <header className="preview-ctf-card-head">
-                    <h4>{challenge.title}</h4>
-                    <span className={`preview-ctf-status preview-ctf-status-${status}`}>
-                      {status === 'completed' ? 'Completed' : status === 'active' ? 'Active' : 'Locked'}
-                    </span>
-                  </header>
-                  <p className="preview-ctf-card-desc">{challenge.description}</p>
-                  <div className="preview-ctf-hints">
-                    {Array.from({ length: 5 }, (_, idx) => {
-                      const level = idx + 1;
-                      const isLockedByOrder = status === 'locked';
-                      const canOpenLevel = level <= revealed + 1;
-                      const isRevealed = level <= revealed;
-                      return (
-                        <button
-                          key={`${challenge.id}-hint-${level}`}
-                          type="button"
-                          className={`preview-ctf-hint-btn${isRevealed ? ' is-revealed' : ''}`}
-                          disabled={isLockedByOrder || !canOpenLevel}
-                          onClick={() => {
-                            pushTerminalOutput(revealHint(challenge.id, level));
-                            setPreviewState('ctf');
-                          }}
-                        >
-                          {level}
-                        </button>
-                      );
-                    })}
-                  </div>
-                  {status === 'locked' ? (
-                    <div className="preview-ctf-lock-overlay" aria-hidden>
-                      <FontAwesomeIcon icon={faLock} />
-                    </div>
-                  ) : null}
-                  {status === 'completed' ? (
-                    <div className="preview-ctf-complete-overlay" aria-hidden>
-                      <FontAwesomeIcon icon={faCircleCheck} />
-                    </div>
-                  ) : null}
-                </article>
-              );
-            })}
-          </div>
-        </section>
-      );
+      return renderCtfPanelContent();
     }
 
     if (previewState === 'default') {
@@ -1116,6 +1124,7 @@ function App() {
 
     const handleResize = () => {
       scheduleNormalizePreviewScroll();
+      syncCtfBottomMode();
     };
 
     window.addEventListener('resize', handleResize);
@@ -1124,6 +1133,7 @@ function App() {
       typeof ResizeObserver !== 'undefined'
         ? new ResizeObserver(() => {
             scheduleNormalizePreviewScroll();
+            syncCtfBottomMode();
           })
         : null;
 
@@ -1137,7 +1147,7 @@ function App() {
         previewScrollRafRef.current = null;
       }
     };
-  }, [scheduleNormalizePreviewScroll]);
+  }, [scheduleNormalizePreviewScroll, syncCtfBottomMode]);
 
   useEffect(() => {
     const el = previewOutputRef.current;
@@ -1146,11 +1156,20 @@ function App() {
     }
 
     scheduleNormalizePreviewScroll();
-  }, [previewState, scheduleNormalizePreviewScroll]);
+    syncCtfBottomMode();
+  }, [previewState, scheduleNormalizePreviewScroll, syncCtfBottomMode]);
 
   useEffect(() => {
     scheduleNormalizePreviewScroll();
-  }, [previewEffect, scheduleNormalizePreviewScroll]);
+    syncCtfBottomMode();
+  }, [previewEffect, scheduleNormalizePreviewScroll, syncCtfBottomMode]);
+
+  useEffect(() => {
+    const id = window.requestAnimationFrame(() => {
+      syncCtfBottomMode();
+    });
+    return () => window.cancelAnimationFrame(id);
+  }, [ctfProgress.inMode, ctfExpanded, previewState, syncCtfBottomMode]);
 
   return (
     <main className="app-shell">
@@ -1220,20 +1239,33 @@ function App() {
           <div className="window-body preview-body">
             <div
               ref={previewOutputRef}
-              className={`preview-output preview-output-${previewState} preview-effect-${previewEffect}`}
+              className={`preview-output preview-output-${previewState} preview-effect-${previewEffect}${ctfProgress.inMode ? ' preview-ctf-active' : ''}${ctfBottomMode === 'sticky' ? ' preview-ctf-needs-scroll' : ''}`}
             >
               <div className="preview-output-scroll">{renderPreviewContent()}</div>
+              {ctfProgress.inMode && ctfExpanded && previewState !== 'ctf' ? (
+                <div className="preview-ctf-drawer" role="dialog" aria-label="CTF drawer">
+                  {renderCtfPanelContent()}
+                </div>
+              ) : null}
               {ctfProgress.inMode ? (
                 <button
                   type="button"
-                  className="preview-ctf-bottom-bar"
+                  className={`preview-ctf-bottom-rail is-${ctfBottomMode}`}
                   onClick={() => {
-                    setPreviewState('ctf');
                     setCtfExpanded((prev) => !prev);
                   }}
+                  aria-expanded={ctfExpanded}
                 >
-                  <span>CTF ACTIVE</span>
-                  <span>{`Challenge ${ctfProgress.currentChallenge}/3 • ${ctfSolvedCount}/3 solved`}</span>
+                  <span className="preview-ctf-bottom-card">
+                    <span className="preview-ctf-bottom-label">
+                      <span>CTF ACTIVE</span>
+                      <span>{`Challenge ${ctfProgress.currentChallenge}/3 • ${ctfSolvedCount}/3 solved`}</span>
+                    </span>
+                    <span className="preview-ctf-bottom-toggle">
+                      {ctfExpanded ? 'Collapse' : 'Expand'}
+                      <FontAwesomeIcon icon={ctfExpanded ? faChevronDown : faChevronUp} aria-hidden />
+                    </span>
+                  </span>
                 </button>
               ) : null}
             </div>
