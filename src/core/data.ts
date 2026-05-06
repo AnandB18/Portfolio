@@ -13,10 +13,10 @@ import type {
 } from './types';
 
 export const ASCII_HEADER: string[] = [
-  '                                                       ___',
-  ' o__      ┌─┐┌┐╷┌─┐┌┐╷╶┬┐   ┌┐ ╷ ╷┌─┐╶┬╴      o__     |   |\\',
-  '/|        ├─┤│└┤├─┤│└┤ ││   ├┴┐├─┤├─┤ │       /\\      |   |X\\',
-  '/ > o     ╵ ╵╵ ╵╵ ╵╵ ╵╶┴┘   └─┘╵ ╵╵ ╵ ╵        <\\     |   |XX\\',
+  '                                                   ___',
+  ' o__    ┌─┐┌┐╷┌─┐┌┐╷╶┬┐   ┌┐ ╷ ╷┌─┐╶┬╴    o__     |   |\\',
+  '/|      ├─┤│└┤├─┤│└┤ ││   ├┴┐├─┤├─┤ │     /\\      |   |X\\',
+  '/ > o   ╵ ╵╵ ╵╵ ╵╵ ╵╶┴┘   └─┘╵ ╵╵ ╵ ╵      <\\     |   |XX\\',
 ];
 
 /**
@@ -55,13 +55,13 @@ export const CTF_CHALLENGES: readonly CtfChallengeDefinition[] = [
     description:
       'Riddle: "Three rooms whisper one key. The self, the builds, the work. Read in that order and bind with underscores." Find the flag across normal portfolio commands.',
     hints: [
-      'This one is solvable without DevTools or decoders.',
-      'Use three existing commands related to self, projects, and work history.',
-      'Take one keyword from each clue line and preserve command order.',
-      "The relevant commands are whoami, projects, and experience. Extract one marked/token-like word from each.",
-      'Build flag1{word_from_whoami_word_from_projects_word_from_experience}.',
+      'Find three words to build the flag',
+      'Each word is in a different part of the portfolio',
+      'The relevent commands are whoami, projects, and experience. Extract one marked/token-like word from each.',
+      "Look at the first highlihgted word in each command",
+      'Build flag1{WordFromWhoami_WordFromProjects_WordFromExperience}.',
     ],
-    expectedFlag: 'flag1{whoami_projects_experience}',
+    expectedFlag: 'flag1{Anand_portfolio_Undergraduate}',
   },
   {
     id: 2,
@@ -69,11 +69,11 @@ export const CTF_CHALLENGES: readonly CtfChallengeDefinition[] = [
     description:
       'Riddle: "I hide where developers stare. Open the glass, inspect the frame, and the second flag appears." Use browser DevTools to discover the flag.',
     hints: [
-      'Open DevTools first (Ctrl+Shift+I / Cmd+Option+I).',
-      'Check Elements and look for unusual data attributes/comments.',
-      'If Elements is noisy, inspect Network responses and static files.',
-      'Search DevTools for "flag2{".',
-      'The full answer is directly visible in DevTools once you search for flag2{.',
+      'The flag is in the browser, not in the terminal output.',
+      'Open DevTools (Ctrl+Shift+I / Cmd+Option+I) and inspect the CTF panel',
+      'Elements tab is enough for this challenge',
+      'Search for flag2{ (ctrl-f / cmd-f) or look for custom data-* attributes',
+      'Copy the full flag2{...} value and submit it exactly.',
     ],
     expectedFlag: 'flag2{devtools_reveals_truth}',
   },
@@ -81,13 +81,13 @@ export const CTF_CHALLENGES: readonly CtfChallengeDefinition[] = [
     id: 3,
     title: 'Challenge 3: Final Decode',
     description:
-      'Riddle: "The last lock speaks in encoded text. Decode the string, wrap it correctly, and submit."',
+      'Riddle: "A Caesar walks alone; this lock marches in cycles. Read my campus initials, repeat them, and the text will confess"',
     hints: [
-      'This final challenge uses decoding.',
-      'Base64 is enough for this step.',
-      'You can decode directly in DevTools Console with atob(...).',
-      'Decode this: ZmluYWxfY2lwaGVyX2NvbXBsZXRl',
-      'Submit flag3{final_cipher_complete}.',
+      'Ceasar alone won\'t breeak this one.',
+      'The cipher: Vigenere',
+      'Feel free to look up a Vigenere Cipher Decoder',
+      'Use my schools initials as the key',
+      'Near-walkthrough: solve the vigenere cipher with "gwu" being the key and the encoded payload being the message. Submit the decoded text as flag3{decoded_text}.',
     ],
     expectedFlag: 'flag3{final_cipher_complete}',
   },

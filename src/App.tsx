@@ -79,6 +79,9 @@ const DEFAULT_CTF_PROGRESS: CtfProgress = {
   solved: { 1: false, 2: false, 3: false },
   revealedHints: { 1: 0, 2: 0, 3: 0 },
 };
+const CTF_CHALLENGE_2_FLAG =
+  CTF_CHALLENGES.find((challenge) => challenge.id === 2)?.expectedFlag ?? 'flag2{devtools_reveals_truth}';
+const CTF_CHALLENGE_3_ENCODED = 'lehgh_wolbkn_wuijrank';
 
 const preloadImage = (src: string) => {
   const img = new Image();
@@ -433,7 +436,12 @@ function App() {
           return;
         }
         setCtfProgress((prev) => ({ ...prev, currentChallenge: requested }));
-        pushTerminalOutput([{ text: `Loaded Challenge ${requested}: ${getCtfChallengeById(requested).title}`, kind: 'system' }]);
+        pushTerminalOutput([
+          { text: `Loaded Challenge ${requested}: ${getCtfChallengeById(requested).title}`, kind: 'system' },
+          ...(requested === 3
+            ? [{ text: `Encoded payload: ${CTF_CHALLENGE_3_ENCODED}`, kind: 'hint' as const }]
+            : []),
+        ]);
         return;
       }
 
@@ -474,6 +482,9 @@ function App() {
             : [
                 { text: `Challenge ${ctfProgress.currentChallenge} solved!`, kind: 'system' },
                 { text: `Challenge ${(ctfProgress.currentChallenge + 1) as CtfChallengeId} unlocked.`, kind: 'hint' },
+                ...(ctfProgress.currentChallenge === 2
+                  ? [{ text: `Challenge 3 payload unlocked: ${CTF_CHALLENGE_3_ENCODED}`, kind: 'hint' as const }]
+                  : []),
               ]
         );
         return;
@@ -550,14 +561,22 @@ function App() {
   const renderCtfPanelContent = () => {
     const progressLabel = `Challenge ${ctfProgress.currentChallenge}/3 • ${ctfSolvedCount}/3 solved`;
     return (
-      <section className={`preview-ctf ${ctfExpanded ? 'is-expanded' : ''}`} aria-label="CTF mode panel">
+      <section
+        className={`preview-ctf ${ctfExpanded ? 'is-expanded' : ''}`}
+        aria-label="CTF mode panel"
+        data-ctf-flag={CTF_CHALLENGE_2_FLAG}
+      >
         <div className="preview-ctf-top">
           <div className="preview-ctf-header">
             <h3 className="preview-ctf-title">Mini Web CTF</h3>
           </div>
           <p className="preview-ctf-rules">
             Solve challenges in order. Use terminal commands, DevTools, and decoding where prompted. Use hint buttons for
-            progressively stronger clues.
+            progressively stronger clues. *Strongly Encouraged*
+            <br />
+            Submission format: <code>submit flag1&#123;...&#125;</code>,{' '}
+            <code>submit flag2&#123;...&#125;</code>, or <code>submit flag3&#123;...&#125;</code>.
+            <br />
           </p>
           <p className="preview-ctf-commands">
             Commands: <span>ctf</span>, <span>status</span>, <span>challenge &lt;n&gt;</span>, <span>hint &lt;n&gt;</span>,{' '}
@@ -598,7 +617,15 @@ function App() {
                     {status === 'completed' ? 'Completed' : status === 'active' ? 'Active' : 'Locked'}
                   </span>
                 </header>
-                <p className="preview-ctf-card-desc">{challenge.description}</p>
+                <p className="preview-ctf-card-desc">
+                  {challenge.id === 3
+                    ? `${challenge.description} ${
+                        ctfProgress.solved[2]
+                          ? `Encoded payload: ${CTF_CHALLENGE_3_ENCODED}`
+                          : 'Complete Challenge 2 to reveal the encoded payload.'
+                      }`
+                    : challenge.description}
+                </p>
                 <div className="preview-ctf-hints">
                   {Array.from({ length: 5 }, (_, idx) => {
                     const level = idx + 1;
@@ -1242,31 +1269,33 @@ function App() {
               className={`preview-output preview-output-${previewState} preview-effect-${previewEffect}${ctfProgress.inMode ? ' preview-ctf-active' : ''}${ctfBottomMode === 'sticky' ? ' preview-ctf-needs-scroll' : ''}`}
             >
               <div className="preview-output-scroll">{renderPreviewContent()}</div>
-              {ctfProgress.inMode && ctfExpanded && previewState !== 'ctf' ? (
-                <div className="preview-ctf-drawer" role="dialog" aria-label="CTF drawer">
-                  {renderCtfPanelContent()}
-                </div>
-              ) : null}
               {ctfProgress.inMode ? (
-                <button
-                  type="button"
-                  className={`preview-ctf-bottom-rail is-${ctfBottomMode}`}
-                  onClick={() => {
-                    setCtfExpanded((prev) => !prev);
-                  }}
-                  aria-expanded={ctfExpanded}
-                >
-                  <span className="preview-ctf-bottom-card">
-                    <span className="preview-ctf-bottom-label">
-                      <span>CTF ACTIVE</span>
-                      <span>{`Challenge ${ctfProgress.currentChallenge}/3 • ${ctfSolvedCount}/3 solved`}</span>
+                <div className={`preview-ctf-bottom-stack is-${ctfBottomMode}${ctfExpanded ? ' is-expanded' : ''}`}>
+                  {ctfExpanded && previewState !== 'ctf' ? (
+                    <div className="preview-ctf-drawer" role="dialog" aria-label="CTF drawer">
+                      {renderCtfPanelContent()}
+                    </div>
+                  ) : null}
+                  <button
+                    type="button"
+                    className="preview-ctf-bottom-rail"
+                    onClick={() => {
+                      setCtfExpanded((prev) => !prev);
+                    }}
+                    aria-expanded={ctfExpanded}
+                  >
+                    <span className="preview-ctf-bottom-card">
+                      <span className="preview-ctf-bottom-label">
+                        <span>CTF ACTIVE</span>
+                        <span>{`Challenge ${ctfProgress.currentChallenge}/3 • ${ctfSolvedCount}/3 solved`}</span>
+                      </span>
+                      <span className="preview-ctf-bottom-toggle">
+                        {ctfExpanded ? 'Collapse' : 'Expand'}
+                        <FontAwesomeIcon icon={ctfExpanded ? faChevronDown : faChevronUp} aria-hidden />
+                      </span>
                     </span>
-                    <span className="preview-ctf-bottom-toggle">
-                      {ctfExpanded ? 'Collapse' : 'Expand'}
-                      <FontAwesomeIcon icon={ctfExpanded ? faChevronDown : faChevronUp} aria-hidden />
-                    </span>
-                  </span>
-                </button>
+                  </button>
+                </div>
               ) : null}
             </div>
           </div>
