@@ -4,20 +4,25 @@ import { faSquareGithub, faLinkedin } from '@fortawesome/free-brands-svg-icons';
 import {
   faArrowUpRightFromSquare,
   faBriefcase,
+  faChevronDown,
+  faChevronUp,
+  faCircleCheck,
   faCodeBranch,
   faEnvelope,
   faFileLines,
   faFilePdf,
   faGraduationCap,
+  faLock,
   faTerminal,
+  faTrophy,
   faUser,
   faWaveSquare,
 } from '@fortawesome/free-solid-svg-icons';
 import { COMMANDS } from './core/commands';
 import {
   ABOUT_PREVIEW,
-  ASCII_HEADER,
   CONTACT,
+  CTF_CHALLENGES,
   CURRENTLY_ITEMS,
   EDUCATION,
   EXPERIENCE,
@@ -26,15 +31,17 @@ import {
   PREVIEW_DEFAULT_NAME,
   PREVIEW_DEFAULT_ROLE,
   PREVIEW_DEFAULT_TAGLINE,
-  RESUME_PDF_URL,
   SOCIAL_LINKS,
 } from './core/data';
+import { RESUME_PDF_URL } from './core/resumeUrl';
 import anandImage from './assets/Profile_Pic.jpg';
 import avatarPhoto from './assets/Avatar_Photo.png';
 import cliImage from './assets/CLI_Image.png';
 import portfolioImage from './assets/Porfolio.png';
 import redRisingPhoto from './assets/Red_Rising_Photo.jpg';
+import { hrefOpensInNewTab } from './core/linkUtils';
 import { executeCommand } from './core/runner';
+import { buildInitialTerminalHistory, getAsciiHeaderLines } from './core/terminalBootstrap';
 import type { TerminalLine, TerminalSegment } from './core/types';
 import { useTerminalTyping } from './hooks/useTerminalTyping';
 import './styles/tokens.css';
@@ -43,7 +50,6 @@ import './styles/layout.css';
 import './styles/window.css';
 import './styles/terminal.css';
 import './styles/preview.css';
-import './styles/boot.css';
 
 type PreviewState =
   | 'default'
@@ -51,8 +57,34 @@ type PreviewState =
   | 'projects'
   | 'experience'
   | 'education'
-  | 'resume';
+  | 'resume'
+  | 'ctf';
 type PreviewEffect = 'idle' | 'pulse' | 'spike' | 'error';
+
+type CtfChallengeId = 1 | 2 | 3;
+
+type CtfProgress = {
+  inMode: boolean;
+  currentChallenge: CtfChallengeId;
+  solved: Record<CtfChallengeId, boolean>;
+  revealedHints: Record<CtfChallengeId, number>;
+};
+
+const CTF_STORAGE_KEY = 'portfolio-ctf-progress-v1';
+const CTF_COMMANDS = ['ctf', 'status', 'challenge', 'hint', 'submit', 'restart', 'quit'] as const;
+const DEFAULT_CTF_PROGRESS: CtfProgress = {
+  inMode: false,
+  currentChallenge: 1,
+  solved: { 1: false, 2: false, 3: false },
+  revealedHints: { 1: 0, 2: 0, 3: 0 },
+};
+const CTF_CHALLENGE_2_FLAG =
+  CTF_CHALLENGES.find((challenge) => challenge.id === 2)?.expectedFlag ?? 'flag2{devtools_reveals_truth}';
+const CTF_CHALLENGE_3_ENCODED = 'lehgh_wolbkn_wuijrank';
+const CTF_ANSWER_CONTACT_MESSAGE = 'No spoilers here. Contact me and we can discuss the answer path together.';
+const CTF_ANSWER_CONTACT_MESSAGE_TERMINAL =
+  'No spoilers for this challenge here. Contact me and we can discuss the answer path together.';
+const BOOT_DURATION_MS = 850;
 
 const preloadImage = (src: string) => {
   const img = new Image();
@@ -77,24 +109,41 @@ const CURRENTLY_IMAGE_MAP: Record<string, string> = {
   'building-image': portfolioImage,
 };
 
+const parseCtfProgress = (value: string | null): CtfProgress => {
+  if (!value) return DEFAULT_CTF_PROGRESS;
+
+  try {
+    const parsed = JSON.parse(value) as Partial<CtfProgress>;
+    const currentChallenge = parsed.currentChallenge === 2 || parsed.currentChallenge === 3 ? parsed.currentChallenge : 1;
+    return {
+      inMode: Boolean(parsed.inMode),
+      currentChallenge,
+      solved: {
+        1: Boolean(parsed.solved?.[1]),
+        2: Boolean(parsed.solved?.[2]),
+        3: Boolean(parsed.solved?.[3]),
+      },
+      revealedHints: {
+        1: Math.max(0, Math.min(5, Number(parsed.revealedHints?.[1] ?? 0))),
+        2: Math.max(0, Math.min(5, Number(parsed.revealedHints?.[2] ?? 0))),
+        3: Math.max(0, Math.min(5, Number(parsed.revealedHints?.[3] ?? 0))),
+      },
+    };
+  } catch {
+    return DEFAULT_CTF_PROGRESS;
+  }
+};
+
+const getCtfChallengeById = (id: CtfChallengeId) => CTF_CHALLENGES.find((item) => item.id === id)!;
+
 function App() {
   const maxConcurrentTypingLines = 5;
   const overlapStartRatio = 0.2;
   const typingTickMs = 3;
   const [input, setInput] = useState('');
-  const [history, setHistory] = useState<TerminalLine[]>([
-    ...ASCII_HEADER.map((text) => ({ text, kind: 'ascii' as const })),
-    { text: '', kind: 'system' },
-    {
-      text: 'Welcome. Type \'help\' to see commands.',
-      kind: 'system',
-      segments: [
-        { text: "Welcome. Type '" },
-        { text: 'help', tone: 'hint' },
-        { text: "' to see commands." },
-      ],
-    },
-  ]);
+  const [history, setHistory] = useState<TerminalLine[]>([]);
+  const [isBooting, setIsBooting] = useState(true);
+  const [bootVisibleChars, setBootVisibleChars] = useState(0);
   const [commandHistory, setCommandHistory] = useState<string[]>([]);
   const [historyIndex, setHistoryIndex] = useState(-1);
   const [courseworkManualById, setCourseworkManualById] = useState<Record<string, boolean>>({});
@@ -106,11 +155,28 @@ function App() {
   const previewScrollRafRef = useRef<number | null>(null);
   const previewEffectTimeoutRef = useRef<number | null>(null);
   const [shouldAutoFollow, setShouldAutoFollow] = useState(true);
+  const [ctfProgress, setCtfProgress] = useState<CtfProgress>(() => {
+    if (typeof window === 'undefined') return DEFAULT_CTF_PROGRESS;
+    return parseCtfProgress(window.localStorage.getItem(CTF_STORAGE_KEY));
+  });
+  const [ctfExpanded, setCtfExpanded] = useState(false);
+  const [ctfBottomMode, setCtfBottomMode] = useState<'absolute' | 'sticky'>('absolute');
+  const [ctfAnswerPromptByChallenge, setCtfAnswerPromptByChallenge] = useState<Record<CtfChallengeId, boolean>>({
+    1: false,
+    2: false,
+    3: false,
+  });
   const previewTabLabel =
-    previewState === 'default' ? 'Welcome' : previewState.charAt(0).toUpperCase() + previewState.slice(1);
+    previewState === 'default'
+      ? 'Welcome'
+      : previewState === 'ctf'
+        ? 'CTF'
+        : previewState.charAt(0).toUpperCase() + previewState.slice(1);
   const previewTabIcon =
     previewState === 'default'
       ? faWaveSquare
+      : previewState === 'ctf'
+        ? faTrophy
       : previewState === 'whoami'
         ? faUser
         : previewState === 'projects'
@@ -130,6 +196,36 @@ function App() {
     typingTickMs,
     onCommitLines: commitTypedLines,
   });
+  const ctfActiveChallenge = getCtfChallengeById(ctfProgress.currentChallenge);
+  const ctfSolvedCount = Number(ctfProgress.solved[1]) + Number(ctfProgress.solved[2]) + Number(ctfProgress.solved[3]);
+  const ctfIsComplete = ctfSolvedCount === 3;
+  const bootAsciiLines = getAsciiHeaderLines();
+  const bootAsciiMaxChars = bootAsciiLines.reduce((max, line) => Math.max(max, line.text.length), 0);
+
+  useEffect(() => {
+    window.localStorage.setItem(CTF_STORAGE_KEY, JSON.stringify(ctfProgress));
+  }, [ctfProgress]);
+
+  useEffect(() => {
+    const start = performance.now();
+    let rafId = 0;
+
+    const step = (now: number) => {
+      const progress = Math.min(1, (now - start) / BOOT_DURATION_MS);
+      setBootVisibleChars(Math.floor(bootAsciiMaxChars * progress));
+
+      if (progress < 1) {
+        rafId = window.requestAnimationFrame(step);
+        return;
+      }
+
+      setHistory([...buildInitialTerminalHistory()]);
+      setIsBooting(false);
+    };
+
+    rafId = window.requestAnimationFrame(step);
+    return () => window.cancelAnimationFrame(rafId);
+  }, [bootAsciiMaxChars]);
 
   const normalizePreviewScroll = useCallback(() => {
     const el = previewOutputRef.current;
@@ -152,6 +248,16 @@ function App() {
       normalizePreviewScroll();
     });
   }, [normalizePreviewScroll]);
+
+  const syncCtfBottomMode = useCallback(() => {
+    const el = previewOutputRef.current;
+    if (!el || !ctfProgress.inMode) {
+      setCtfBottomMode('absolute');
+      return;
+    }
+    const needsScroll = el.scrollHeight > el.clientHeight + 1;
+    setCtfBottomMode(needsScroll ? 'sticky' : 'absolute');
+  }, [ctfProgress.inMode]);
 
   const handleCourseworkMouseEnter = useCallback((itemId: string) => {
     setCourseworkManualById((prev) => ({ ...prev, [itemId]: true }));
@@ -224,16 +330,214 @@ function App() {
     return parts;
   };
 
+  const pushTerminalOutput = useCallback((lines: TerminalLine[]) => {
+    if (lines.length === 0) return;
+    enqueueLines([{ text: '\u00a0', kind: 'output' }, ...lines, { text: '\u00a0', kind: 'output' }]);
+  }, [enqueueLines]);
+
+  const revealHint = useCallback((challengeId: CtfChallengeId, requestedLevel: number) => {
+    const level = Math.max(1, Math.min(5, requestedLevel));
+    if (challengeId !== ctfProgress.currentChallenge) {
+      return [
+        { text: `Challenge ${challengeId} is locked. Solve challenge ${ctfProgress.currentChallenge} first.`, kind: 'hint' as const },
+      ];
+    }
+
+    const currentlyRevealed = ctfProgress.revealedHints[challengeId];
+    const canReveal = level <= currentlyRevealed + 1 || level <= currentlyRevealed;
+    if (!canReveal) {
+      return [{ text: `Unlock hint ${currentlyRevealed + 1} before requesting hint ${level}.`, kind: 'hint' as const }];
+    }
+
+    setCtfProgress((prev) => ({
+      ...prev,
+      revealedHints: {
+        ...prev.revealedHints,
+        [challengeId]: Math.max(prev.revealedHints[challengeId], level),
+      },
+    }));
+
+    return [
+      { text: `Challenge ${challengeId} hint ${level}: ${getCtfChallengeById(challengeId).hints[level - 1]}`, kind: 'hint' as const },
+    ];
+  }, [ctfProgress.currentChallenge, ctfProgress.revealedHints]);
+
+  const getCtfHelpLines = (): TerminalLine[] => {
+    const columnWidth = 20;
+    const coreRows = [
+      { command: 'help', description: 'Show commands and CTF controls' },
+      { command: 'clear', description: 'Clear terminal output' },
+      { command: 'whoami', description: 'Open about preview' },
+      { command: 'education', description: 'Open education preview' },
+      { command: 'experience', description: 'Open experience preview' },
+      { command: 'projects', description: 'Open projects preview' },
+      { command: 'resume', description: 'Open resume preview' },
+      { command: 'quit', description: 'Exit CTF mode (progress saved)' },
+    ];
+    const ctfRows = [
+      { command: 'ctf', description: 'Open CTF panel' },
+      { command: 'challenge <n>', description: 'View active challenge (ordered)' },
+      { command: 'hint <n>', description: 'Reveal next hint (1-5)' },
+      { command: 'submit <flag>', description: 'Submit flag for active challenge' },
+      { command: 'status', description: 'Show CTF progress' },
+      { command: 'restart', description: 'Reset all CTF progress' },
+    ];
+    return [
+      { text: 'Core Commands', kind: 'system', segments: [{ text: 'Core Commands', tone: 'command' }] },
+      ...coreRows.map((row) => ({
+        text: `${row.command.padEnd(columnWidth)}${row.description}`,
+        kind: 'output' as const,
+        segments: [{ text: row.command.padEnd(columnWidth), tone: 'command' as const }, { text: row.description }],
+      })),
+      { text: 'CTF Commands (Active)', kind: 'system', segments: [{ text: 'CTF Commands (Active)', tone: 'project' }] },
+      ...ctfRows.map((row) => ({
+        text: `${row.command.padEnd(columnWidth)}${row.description}`,
+        kind: 'output' as const,
+        segments: [{ text: row.command.padEnd(columnWidth), tone: 'project' as const }, { text: row.description }],
+      })),
+    ];
+  };
+
   const runCommand = (raw: string) => {
     const trimmed = raw.trim();
     if (!trimmed) return;
-    const command = trimmed.toLowerCase();
+    const [head, ...rest] = trimmed.split(/\s+/);
+    const command = head.toLowerCase();
+    const args = rest;
 
     setCommandHistory((prev) => [...prev, trimmed]);
     setHistoryIndex(-1);
+    const echoCommand = () => {
+      setHistory((prev) => [...prev, { text: trimmed, kind: 'command' }]);
+    };
+
+    if (command === 'ctf') {
+      echoCommand();
+      setCtfProgress((prev) => ({ ...prev, inMode: true }));
+      setPreviewState('ctf');
+      setPreviewEffect('pulse');
+      pushTerminalOutput([
+        { text: 'CTF mode active. Solve challenges in order: 1 -> 2 -> 3.', kind: 'system' },
+        { text: 'Use: status, challenge <n>, hint <n>, submit <flag>, restart, quit', kind: 'hint' },
+      ]);
+      return;
+    }
+
+    if (command === 'quit') {
+      echoCommand();
+      if (!ctfProgress.inMode) {
+        pushTerminalOutput([{ text: 'Not in CTF mode. Run ctf to start.', kind: 'hint' }]);
+        return;
+      }
+      setCtfProgress((prev) => ({ ...prev, inMode: false }));
+      setCtfExpanded(false);
+      setPreviewState(previewState === 'ctf' ? 'default' : previewState);
+      setPreviewEffect('idle');
+      pushTerminalOutput([{ text: 'Exited CTF mode. Progress saved.', kind: 'system' }]);
+      return;
+    }
+
+    if (ctfProgress.inMode) {
+      if (command === 'help') {
+        echoCommand();
+        pushTerminalOutput(getCtfHelpLines());
+        return;
+      }
+
+      if (command === 'status') {
+        echoCommand();
+        const stateLabel = (id: CtfChallengeId) =>
+          ctfProgress.solved[id] ? 'completed' : ctfProgress.currentChallenge === id ? 'active' : 'locked';
+        pushTerminalOutput([
+          { text: `CTF progress: ${ctfSolvedCount}/3 solved`, kind: 'system' },
+          { text: `Challenge 1: ${stateLabel(1)}`, kind: 'output' },
+          { text: `Challenge 2: ${stateLabel(2)}`, kind: 'output' },
+          { text: `Challenge 3: ${stateLabel(3)}`, kind: 'output' },
+        ]);
+        return;
+      }
+
+      if (command === 'challenge') {
+        echoCommand();
+        const requested = Number(args[0] ?? ctfProgress.currentChallenge) as CtfChallengeId;
+        const valid = requested === 1 || requested === 2 || requested === 3;
+        if (!valid) {
+          pushTerminalOutput([{ text: 'Usage: challenge <1|2|3>', kind: 'hint' }]);
+          return;
+        }
+        if (requested > ctfProgress.currentChallenge) {
+          pushTerminalOutput([{ text: `Challenge ${requested} is locked. Solve challenge ${ctfProgress.currentChallenge} first.`, kind: 'hint' }]);
+          return;
+        }
+        const challenge = getCtfChallengeById(requested);
+        setCtfProgress((prev) => ({ ...prev, currentChallenge: requested }));
+        pushTerminalOutput([
+          { text: `Loaded Challenge ${requested}: ${challenge.title}`, kind: 'system' },
+          { text: challenge.description, kind: 'output' },
+          ...(requested === 3
+            ? [{ text: `Encoded payload: ${CTF_CHALLENGE_3_ENCODED}`, kind: 'hint' as const }]
+            : []),
+        ]);
+        return;
+      }
+
+      if (command === 'hint') {
+        echoCommand();
+        const level = Number(args[0] ?? ctfProgress.revealedHints[ctfProgress.currentChallenge] + 1);
+        pushTerminalOutput(revealHint(ctfProgress.currentChallenge, level));
+        return;
+      }
+
+      if (command === 'submit') {
+        echoCommand();
+        const submitted = args.join(' ').trim();
+        if (!submitted) {
+          pushTerminalOutput([{ text: 'Usage: submit <flag>', kind: 'hint' }]);
+          return;
+        }
+        const expected = ctfActiveChallenge.expectedFlag;
+        if (submitted !== expected) {
+          pushTerminalOutput([{ text: `Incorrect flag for Challenge ${ctfProgress.currentChallenge}.`, kind: 'error' }]);
+          return;
+        }
+
+        setCtfProgress((prev) => {
+          const next: CtfProgress = {
+            ...prev,
+            solved: { ...prev.solved, [prev.currentChallenge]: true },
+          };
+          if (prev.currentChallenge < 3) {
+            next.currentChallenge = (prev.currentChallenge + 1) as CtfChallengeId;
+          }
+          return next;
+        });
+        const isFinal = ctfProgress.currentChallenge === 3;
+        pushTerminalOutput(
+          isFinal
+            ? [{ text: 'Challenge 3 solved. Congrats, you completed the mini CTF!', kind: 'system' }]
+            : [
+                { text: `Challenge ${ctfProgress.currentChallenge} solved!`, kind: 'system' },
+                { text: `Challenge ${(ctfProgress.currentChallenge + 1) as CtfChallengeId} unlocked.`, kind: 'hint' },
+                ...(ctfProgress.currentChallenge === 2
+                  ? [{ text: `Challenge 3 payload unlocked: ${CTF_CHALLENGE_3_ENCODED}`, kind: 'hint' as const }]
+                  : []),
+              ]
+        );
+        return;
+      }
+
+      if (command === 'restart') {
+        echoCommand();
+        setCtfProgress({ ...DEFAULT_CTF_PROGRESS, inMode: true });
+        setCtfExpanded(false);
+        setCtfAnswerPromptByChallenge({ 1: false, 2: false, 3: false });
+        pushTerminalOutput([{ text: 'CTF progress reset. Back to Challenge 1.', kind: 'system' }]);
+        return;
+      }
+    }
 
     const result = executeCommand(trimmed, {
-      clearHistory: () => setHistory([]),
+      clearHistory: () => setHistory(buildInitialTerminalHistory()),
     });
 
     if (result.didClear) {
@@ -291,6 +595,146 @@ function App() {
     enqueueLines(typedLinesWithSpacing);
   };
 
+  const renderCtfPanelContent = () => {
+    const progressLabel = `Challenge ${ctfProgress.currentChallenge}/3 • ${ctfSolvedCount}/3 solved`;
+    return (
+      <section
+        className={`preview-ctf ${ctfExpanded ? 'is-expanded' : ''}`}
+        aria-label="CTF mode panel"
+        data-ctf-flag={CTF_CHALLENGE_2_FLAG}
+      >
+        <div className="preview-ctf-top">
+          <div className="preview-ctf-header">
+            <h3 className="preview-ctf-title">Mini Web CTF</h3>
+          </div>
+          <p className="preview-ctf-rules">
+            Solve challenges in order. Use terminal commands, DevTools, and decoding where prompted. Use hint buttons for
+            progressively stronger clues.
+            <br />
+            Submission format: <code>submit flag1&#123;...&#125;</code>,{' '}
+            <code>submit flag2&#123;...&#125;</code>, or <code>submit flag3&#123;...&#125;</code>.
+          </p>
+          <p className="preview-ctf-commands">
+            Commands: <span>ctf</span>, <span>status</span>, <span>challenge &lt;n&gt;</span>, <span>hint &lt;n&gt;</span>,{' '}
+            <span>submit &lt;flag&gt;</span>, <span>restart</span>, <span>quit</span>
+          </p>
+          <div className="preview-ctf-controls">
+            <button
+              type="button"
+              className="preview-ctf-restart"
+              onClick={() => runCommand('restart')}
+            >
+              Restart CTF
+            </button>
+            <span className="preview-ctf-progress">{progressLabel}</span>
+          </div>
+        </div>
+
+        <div className="preview-ctf-cards">
+          {CTF_CHALLENGES.map((challenge) => {
+            const status: 'locked' | 'active' | 'completed' =
+              ctfProgress.solved[challenge.id]
+                ? 'completed'
+                : challenge.id === ctfProgress.currentChallenge
+                  ? 'active'
+                  : challenge.id > ctfProgress.currentChallenge
+                    ? 'locked'
+                    : 'active';
+            const revealed = ctfProgress.revealedHints[challenge.id];
+            return (
+              <article
+                key={challenge.id}
+                className={`preview-ctf-card preview-ctf-card-${status}`}
+                aria-label={`Challenge ${challenge.id}`}
+              >
+                <header className="preview-ctf-card-head">
+                  <h4>{challenge.title}</h4>
+                  <span className={`preview-ctf-status preview-ctf-status-${status}`}>
+                    {status === 'completed' ? 'Completed' : status === 'active' ? 'Active' : 'Locked'}
+                  </span>
+                </header>
+                <p className="preview-ctf-card-desc">
+                  {challenge.id === 3
+                    ? `${challenge.description} ${
+                        ctfProgress.solved[2]
+                          ? `Encoded payload: ${CTF_CHALLENGE_3_ENCODED}`
+                          : 'Complete Challenge 2 to reveal the encoded payload.'
+                      }`
+                    : challenge.description}
+                </p>
+                <div className="preview-ctf-hints">
+                  {Array.from({ length: 5 }, (_, idx) => {
+                    const level = idx + 1;
+                    const isLockedByOrder = status === 'locked';
+                    const canOpenLevel = level <= revealed + 1;
+                    const isRevealed = level <= revealed;
+                    return (
+                      <button
+                        key={`${challenge.id}-hint-${level}`}
+                        type="button"
+                        className={`preview-ctf-hint-btn${isRevealed ? ' is-revealed' : ''}`}
+                        disabled={isLockedByOrder || !canOpenLevel}
+                        onClick={() => {
+                          pushTerminalOutput(revealHint(challenge.id, level));
+                        }}
+                      >
+                        {level}
+                      </button>
+                    );
+                  })}
+                  {status !== 'completed' ? (
+                    <button
+                      type="button"
+                      className="preview-ctf-answer-btn"
+                      disabled={status === 'locked'}
+                      onClick={() => {
+                        setCtfAnswerPromptByChallenge((prev) => ({ ...prev, [challenge.id]: true }));
+                        pushTerminalOutput([
+                          {
+                            text: CTF_ANSWER_CONTACT_MESSAGE_TERMINAL,
+                            kind: 'hint',
+                          },
+                        ]);
+                      }}
+                    >
+                      Answer
+                    </button>
+                  ) : null}
+                </div>
+                {status !== 'completed' && ctfAnswerPromptByChallenge[challenge.id] ? (
+                  <p className="preview-ctf-answer-note">
+                    {CTF_ANSWER_CONTACT_MESSAGE}
+                  </p>
+                ) : null}
+                {status === 'completed' ? (
+                  <p className="preview-ctf-answer-reveal">
+                    Answer: <span>{challenge.expectedFlag}</span>
+                  </p>
+                ) : null}
+                {status === 'locked' ? (
+                  <div className="preview-ctf-lock-overlay" aria-hidden>
+                    <FontAwesomeIcon icon={faLock} />
+                  </div>
+                ) : null}
+                {status === 'completed' ? (
+                  <div className="preview-ctf-complete-overlay" aria-hidden>
+                    <FontAwesomeIcon icon={faCircleCheck} />
+                  </div>
+                ) : null}
+              </article>
+            );
+          })}
+        </div>
+        {ctfSolvedCount === 3 ? (
+          <section className="preview-ctf-finale" aria-label="CTF completion message">
+            <h4>Congrats! You cleared the mini CTF.</h4>
+            <p>Now maybe go outside and touch some grass</p>
+          </section>
+        ) : null}
+      </section>
+    );
+  };
+
   const renderPreviewContent = () => {
     const getContactHref = (label: string, value: string) => {
       if (value.startsWith('http') || value.startsWith('mailto:')) return value;
@@ -312,11 +756,7 @@ function App() {
     const resumeItem = CONTACT.find((item) => item.label.toLowerCase() === 'resume');
     const resumeHrefFromContact = resumeItem ? getContactHref(resumeItem.label, resumeItem.value) : null;
     const resumeHref = resumeHrefFromContact ?? RESUME_PDF_URL;
-    const resumeOpensNewTab =
-      resumeHref.startsWith('http://') ||
-      resumeHref.startsWith('https://') ||
-      resumeHref.startsWith('/') ||
-      resumeHref.toLowerCase().endsWith('.pdf');
+    const resumeOpensNewTab = hrefOpensInNewTab(resumeHref);
 
     const renderCommandHint = (line: string) =>
       line.split(/(\s+)/).map((token, idx) => {
@@ -336,6 +776,10 @@ function App() {
       if (iconKey === 'mail') return faEnvelope;
       return null;
     };
+
+    if (previewState === 'ctf') {
+      return renderCtfPanelContent();
+    }
 
     if (previewState === 'default') {
       return (
@@ -672,6 +1116,7 @@ function App() {
   };
 
   const submitCurrentInput = () => {
+    if (isBooting) return;
     runCommand(input);
     setInput('');
   };
@@ -687,6 +1132,8 @@ function App() {
 
   // Handles keyboard-first terminal interactions (history + autocomplete).
   const handleInputKeyDown: KeyboardEventHandler<HTMLInputElement> = (e) => {
+    if (isBooting) return;
+
     if (e.key === 'Enter') {
       e.preventDefault();
       submitCurrentInput();
@@ -695,7 +1142,9 @@ function App() {
 
     if (e.key === 'Tab') {
       const query = input.trim().toLowerCase();
-      const commandNames = Object.keys(COMMANDS);
+      const commandNames = ctfProgress.inMode
+        ? Array.from(new Set([...Object.keys(COMMANDS), ...CTF_COMMANDS]))
+        : Object.keys(COMMANDS);
 
       // Empty input keeps default browser tab navigation.
       if (!query) {
@@ -775,6 +1224,7 @@ function App() {
 
     const handleResize = () => {
       scheduleNormalizePreviewScroll();
+      syncCtfBottomMode();
     };
 
     window.addEventListener('resize', handleResize);
@@ -783,6 +1233,7 @@ function App() {
       typeof ResizeObserver !== 'undefined'
         ? new ResizeObserver(() => {
             scheduleNormalizePreviewScroll();
+            syncCtfBottomMode();
           })
         : null;
 
@@ -796,7 +1247,7 @@ function App() {
         previewScrollRafRef.current = null;
       }
     };
-  }, [scheduleNormalizePreviewScroll]);
+  }, [scheduleNormalizePreviewScroll, syncCtfBottomMode]);
 
   useEffect(() => {
     const el = previewOutputRef.current;
@@ -805,11 +1256,20 @@ function App() {
     }
 
     scheduleNormalizePreviewScroll();
-  }, [previewState, scheduleNormalizePreviewScroll]);
+    syncCtfBottomMode();
+  }, [previewState, scheduleNormalizePreviewScroll, syncCtfBottomMode]);
 
   useEffect(() => {
     scheduleNormalizePreviewScroll();
-  }, [previewEffect, scheduleNormalizePreviewScroll]);
+    syncCtfBottomMode();
+  }, [previewEffect, scheduleNormalizePreviewScroll, syncCtfBottomMode]);
+
+  useEffect(() => {
+    const id = window.requestAnimationFrame(() => {
+      syncCtfBottomMode();
+    });
+    return () => window.cancelAnimationFrame(id);
+  }, [ctfProgress.inMode, ctfExpanded, previewState, syncCtfBottomMode]);
 
   return (
     <main className="app-shell">
@@ -848,21 +1308,30 @@ function App() {
                   </p>
                 );
               })}
+              {isBooting
+                ? bootAsciiLines.map((line, idx) => (
+                    <p key={`boot-ascii-${idx}`} className="line-ascii line-typing-active">
+                      {line.text.slice(0, bootVisibleChars)}
+                    </p>
+                  ))
+                : null}
 
-              <div className="terminal-active-prompt-line">
-                <label className="terminal-prompt" htmlFor="terminal-input">
-                  {renderPrompt()}
-                </label>
-                <input
-                  ref={inputRef}
-                  id="terminal-input"
-                  value={input}
-                  onChange={(e) => setInput(e.target.value)}
-                  onKeyDown={handleInputKeyDown}
-                  autoComplete="off"
-                  spellCheck={false}
-                />
-              </div>
+              {!isBooting ? (
+                <div className="terminal-active-prompt-line">
+                  <label className="terminal-prompt" htmlFor="terminal-input">
+                    {renderPrompt()}
+                  </label>
+                  <input
+                    ref={inputRef}
+                    id="terminal-input"
+                    value={input}
+                    onChange={(e) => setInput(e.target.value)}
+                    onKeyDown={handleInputKeyDown}
+                    autoComplete="off"
+                    spellCheck={false}
+                  />
+                </div>
+              ) : null}
             </div>
           </div>
         </div>
@@ -879,9 +1348,37 @@ function App() {
           <div className="window-body preview-body">
             <div
               ref={previewOutputRef}
-              className={`preview-output preview-output-${previewState} preview-effect-${previewEffect}`}
+              className={`preview-output preview-output-${previewState} preview-effect-${previewEffect}${ctfProgress.inMode ? ' preview-ctf-active' : ''}${ctfBottomMode === 'sticky' ? ' preview-ctf-needs-scroll' : ''}`}
             >
               <div className="preview-output-scroll">{renderPreviewContent()}</div>
+              {ctfProgress.inMode ? (
+                <div className={`preview-ctf-bottom-stack is-${ctfBottomMode}${ctfExpanded ? ' is-expanded' : ''}`}>
+                  {ctfExpanded && previewState !== 'ctf' ? (
+                    <div className="preview-ctf-drawer" role="dialog" aria-label="CTF drawer">
+                      {renderCtfPanelContent()}
+                    </div>
+                  ) : null}
+                  <button
+                    type="button"
+                    className="preview-ctf-bottom-rail"
+                    onClick={() => {
+                      setCtfExpanded((prev) => !prev);
+                    }}
+                    aria-expanded={ctfExpanded}
+                  >
+                    <span className={`preview-ctf-bottom-card${ctfIsComplete ? ' is-complete' : ''}`}>
+                      <span className="preview-ctf-bottom-label">
+                        <span>{ctfIsComplete ? 'CTF COMPLETE - Congrats!' : 'CTF ACTIVE'}</span>
+                        <span>{ctfIsComplete ? 'Status: 3/3 complete' : `Challenge ${ctfProgress.currentChallenge}/3 • ${ctfSolvedCount}/3 solved`}</span>
+                      </span>
+                      <span className="preview-ctf-bottom-toggle">
+                        {ctfExpanded ? 'Collapse' : 'Expand'}
+                        <FontAwesomeIcon icon={ctfExpanded ? faChevronDown : faChevronUp} aria-hidden />
+                      </span>
+                    </span>
+                  </button>
+                </div>
+              ) : null}
             </div>
           </div>
         </div>

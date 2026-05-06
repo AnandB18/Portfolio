@@ -9,15 +9,14 @@ import type {
   TerminalEducationItem,
   TerminalHelpItem,
   TerminalWhoami,
+  CtfChallengeDefinition,
 } from './types';
-import resumePdfUrl from '../assets/AnandBhatResume.pdf';
 
 export const ASCII_HEADER: string[] = [
-    '                                                       ___',
-    ' o__      ┌─┐┌┐╷┌─┐┌┐╷╶┬┐   ┌┐ ╷ ╷┌─┐╶┬╴      o__     |   |\\',
-    '/|        ├─┤│└┤├─┤│└┤ ││   ├┴┐├─┤├─┤ │       /\\      |   |X\\',
-    '/ > o     ╵ ╵╵ ╵╵ ╵╵ ╵╶┴┘   └─┘╵ ╵╵ ╵ ╵        <\\     |   |XX\\',
-   
+  '                                                   ___',
+  ' o__    ┌─┐┌┐╷┌─┐┌┐╷╶┬┐   ┌┐ ╷ ╷┌─┐╶┬╴    o__     |   |\\',
+  '/|      ├─┤│└┤├─┤│└┤ ││   ├┴┐├─┤├─┤ │     /\\      |   |X\\',
+  '/ > o   ╵ ╵╵ ╵╵ ╵╵ ╵╶┴┘   └─┘╵ ╵╵ ╵ ╵      <\\     |   |XX\\',
 ];
 
 /**
@@ -28,7 +27,7 @@ export const TERMINAL_WHOAMI: TerminalWhoami = {
   displayName: 'Anand Bhat',
   credentials: 'BS Computer Science @ George Washington University · Expected May 2027',
   tagline: 'Focus: Systems, security, and practical software engineering. From kernels and protocols to things people actually use.',
-  suggestedCommands: ['education', 'experience', 'projects'],
+  suggestedCommands: ['education', 'experience', 'projects', 'resume'],
 };
 
 /** Plain strings for the command registry / anything that needs a flat list. */
@@ -45,6 +44,53 @@ export const TERMINAL_HELP_ITEMS: TerminalHelpItem[] = [
   { command: 'experience', description: 'Show work experience' },
   { command: 'projects', description: 'List available projects' },
   { command: 'resume', description: 'Open my resume' },
+  { command: 'ctf', description: 'Enter mini CTF mode' },
+  { command: 'quit', description: 'Exit CTF mode when in it' }
+];
+
+export const CTF_CHALLENGES: readonly CtfChallengeDefinition[] = [
+  {
+    id: 1,
+    title: 'Challenge 1: Portfolio Trail',
+    description:
+      'Riddle: "Three rooms whisper one key. The self, the builds, the work. Read in that order and bind with underscores." Find the flag across normal portfolio commands.',
+    hints: [
+      'Find three words to build the flag.',
+      'Each word is in a different part of the portfolio.',
+      'The relevant commands are whoami, projects, and experience, in that order.',
+      'Look at the first highlighted/purple word in each command output.',
+      'Build flag1{WordFromWhoami_WordFromProjects_WordFromExperience}.',
+    ],
+    expectedFlag: 'flag1{Anand_portfolio_Undergraduate}',
+  },
+  {
+    id: 2,
+    title: 'Challenge 2: Inspector Signal',
+    description:
+      'Riddle: "I hide where developers stare. Open the glass, inspect the frame, and the second flag appears." Use browser DevTools to discover the flag (desktop browser recommended).',
+    hints: [
+      'The flag is in the browser, not in the terminal output.',
+      'Open DevTools (Ctrl+Shift+I / Cmd+Option+I) and inspect the CTF panel.',
+      'The Elements tab is enough for this challenge.',
+      'Search for flag2{ (Ctrl+F / Cmd+F) or look for custom data-* attributes.',
+      'Copy the full flag2{...} value and submit it exactly.',
+    ],
+    expectedFlag: 'flag2{devtools_reveals_truth}',
+  },
+  {
+    id: 3,
+    title: 'Challenge 3: Final Decode',
+    description:
+      'Riddle: "A Caesar walks alone; this lock marches in cycles. Read my campus initials, repeat them, and the text will confess."',
+    hints: [
+      "Caesar alone won't break this one.",
+      'The cipher is Vigenere.',
+      'Feel free to look up a Vigenere cipher decoder.',
+      "Use my school's initials as the key.",
+      'Near-walkthrough: solve the Vigenere cipher with "gwu" as the key and the encoded payload as the message. Submit the decoded text as flag3{decoded_text}.',
+    ],
+    expectedFlag: 'flag3{final_cipher_complete}',
+  },
 ];
 
 export const PREVIEW_DEFAULT_NAME = 'Anand Bhat';
@@ -102,9 +148,6 @@ export const TERMINAL_EDUCATION_ITEMS: TerminalEducationItem[] = [
   },
 ];
 
-/** Bundled resume PDF URL (Vite); use for preview + any download/open links. */
-export const RESUME_PDF_URL = resumePdfUrl;
-
 export const TERMINAL_RESUME_LINES: string[] = [
   'Click to open my resume in a new tab.',
 ];
@@ -131,7 +174,7 @@ export const CURRENTLY_ITEMS: CurrentlyItem[] = [
 export const SOCIAL_LINKS = [
   { label: 'LinkedIn', href: 'https://www.linkedin.com/in/abhat21/', icon: 'linkedin' },
   { label: 'GitHub', href: 'https://github.com/AnandB18', icon: 'github' },
-  { label: 'Email', href: 'mailto: anvenbha1@gmail.com' , icon: 'mail' },
+  { label: 'Email', href: 'mailto:anvenbha1@gmail.com', icon: 'mail' },
 ];
 
 export const PROJECTS: Project[] = [
@@ -146,8 +189,6 @@ export const PROJECTS: Project[] = [
       'Deployed web build is the stable baseline while the TUI catches up.',
     ],
     stack: ['React', 'TypeScript', 'Vite', 'Go', 'CSS'],
-    imageKey: 'project-portfolio',
-    imageAlt: 'Terminal Portfolio — web UI plus Go TUI scaffold',
     repoUrl: 'https://github.com/AnandB18/Portfolio',
   },
   {
@@ -161,8 +202,6 @@ export const PROJECTS: Project[] = [
       'Interactive input via Linenoise; focus on process control and pipes.',
     ],
     stack: ['C', 'POSIX', 'GNU Make', 'Linenoise'],
-    imageKey: 'project-shell',
-    imageAlt: 'Mini Shell (msh) — Unix shell project',
     repoUrl: 'https://github.com/AnandB18/mini_shell',
   },
   {
@@ -175,8 +214,6 @@ export const PROJECTS: Project[] = [
       'MVP is usable; polish continues and pace is slow while paused.',
     ],
     stack: ['Next.js', 'TypeScript', 'Prisma', 'PostgreSQL', 'Auth.js', 'Google APIs', 'Tailwind CSS'],
-    imageKey: 'project-planner',
-    imageAlt: 'GCal Planner — Google Calendar & Tasks sync',
     repoUrl: 'https://github.com/AnandB18/gcal_planner',
   },
   {

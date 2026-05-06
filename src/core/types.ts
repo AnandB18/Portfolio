@@ -68,7 +68,7 @@ export type TerminalLineKind =
   | 'hint'
   | 'error';
 
-export type TerminalSegmentTone = 'default' | 'hint' | 'project' | 'project-link';
+export type TerminalSegmentTone = 'default' | 'hint' | 'command' | 'project' | 'project-link';
 
 export type TerminalSegment = {
   text: string;
@@ -120,4 +120,12 @@ export type TerminalWhoami = {
   tagline: string;
   /** Shown as `Try: a, b, c` with command names highlighted. */
   suggestedCommands: readonly string[];
+};
+
+export type CtfChallengeDefinition = {
+  id: 1 | 2 | 3;
+  title: string;
+  description: string;
+  hints: readonly [string, string, string, string, string];
+  expectedFlag: string;
 };

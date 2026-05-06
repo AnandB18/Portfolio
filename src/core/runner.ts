@@ -17,7 +17,7 @@ const asHelpLines = (lines: string[]): TerminalLine[] =>
       return {
         text,
         kind: 'output' as const,
-        segments: [{ text, tone: 'hint' as const }],
+        segments: [{ text, tone: 'command' as const }],
       };
     }
 
@@ -25,7 +25,7 @@ const asHelpLines = (lines: string[]): TerminalLine[] =>
       text,
       kind: 'output' as const,
       segments: [
-        { text: text.slice(0, firstSpace), tone: 'hint' as const },
+        { text: text.slice(0, firstSpace), tone: 'command' as const },
         { text: text.slice(firstSpace) },
       ],
     };
@@ -74,10 +74,10 @@ const asEducationLines = (): TerminalLine[] =>
     },
   ]);
 
-const segmentLineWithHintCommands = (line: string) =>
+const segmentLineWithCommandTokens = (line: string) =>
   line.split(/(\s+)/).map((token) => {
     const normalized = token.toLowerCase().replace(/[^a-z-]/g, '');
-    const tone = Object.hasOwn(COMMANDS, normalized) ? ('hint' as const) : undefined;
+    const tone = Object.hasOwn(COMMANDS, normalized) ? ('command' as const) : undefined;
     return { text: token, tone };
   });
 
@@ -96,7 +96,7 @@ const asWhoamiLines = (): TerminalLine[] => {
       ],
     },
     { text: tagline, kind: 'output' as const },
-    { text: tryText, kind: 'output' as const, segments: segmentLineWithHintCommands(tryText) },
+    { text: tryText, kind: 'output' as const, segments: segmentLineWithCommandTokens(tryText) },
   ];
 };
 
@@ -132,12 +132,24 @@ export const executeCommand = (
 
   if (!def) {
     const suggestion = getCommandSuggestion(command);
-    const suggestionLine = suggestion ? `Did you mean: ${suggestion}?` : null;
+    const suggestionLine = suggestion ? (`Did you mean: ${suggestion}?` as const) : null;
     return {
       lines: [
         { text: trimmed, kind: 'command' },
         { text: `Command not found: ${command}`, kind: 'error' },
-        ...(suggestionLine ? [{ text: suggestionLine, kind: 'hint' as const }] : []),
+        ...(suggestion && suggestionLine
+          ? [
+              {
+                text: suggestionLine,
+                kind: 'hint' as const,
+                segments: [
+                  { text: 'Did you mean: ' },
+                  { text: suggestion, tone: 'command' as const },
+                  { text: '?' },
+                ],
+              },
+            ]
+          : []),
       ],
       didClear: false,
     };

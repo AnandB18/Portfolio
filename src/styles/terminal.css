@@ -1,6 +1,7 @@
 .terminal-panel {
   display: flex;
   flex-direction: column;
+  min-width: 0;
   min-height: 0;
   padding: 0;
 }
@@ -53,6 +54,10 @@
 
 .terminal-output .line-ascii {
   color: var(--color-terminal-line-ascii);
+  white-space: pre;
+  overflow: hidden;
+  text-overflow: clip;
+  word-break: normal;
 }
 
 .terminal-output .line-system {
@@ -60,7 +65,7 @@
 }
 
 .terminal-output .line-command {
-  color: var(--color-terminal-line-hint);
+  color: var(--color-terminal-line-command);
 }
 
 .terminal-output .line-output {
@@ -84,6 +89,11 @@
 
 .terminal-segment-hint {
   color: var(--color-terminal-line-hint);
+}
+
+.terminal-segment-command {
+  color: var(--color-terminal-line-command);
+  font-weight: 600;
 }
 
 .terminal-segment-project {
@@ -123,20 +133,14 @@
   white-space: nowrap;
 }
 
-.terminal-prompt-user {
-  color: var(--color-prompt-user);
-}
-
-.terminal-prompt-host {
-  color: var(--color-prompt-user);
-}
-
-.terminal-prompt-path {
+.terminal-prompt-user,
+.terminal-prompt-host,
+.terminal-prompt-path,
+.terminal-prompt-symbol {
   color: var(--color-prompt-user);
 }
 
 .terminal-prompt-symbol {
-  color: var(--color-prompt-user);
   margin-right: 0.45rem;
 }
 
@@ -146,7 +150,7 @@
   border: 0;
   outline: 0;
   background: transparent;
-  color: var(--color-terminal-line-hint);
+  color: var(--color-terminal-line-command);
   font: inherit;
 }
 

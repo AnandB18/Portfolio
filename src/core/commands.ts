@@ -46,6 +46,10 @@ export const COMMANDS: Record<string, CommandDefinition> = {
     description: 'Open my resume',
     run: () => TERMINAL_RESUME_LINES,
   },
+  ctf: {
+    description: 'Enter mini CTF mode',
+    run: () => ['Entering CTF mode...'],
+  },
 };
 
 // Levenshtein distance for typo-aware command suggestions.
