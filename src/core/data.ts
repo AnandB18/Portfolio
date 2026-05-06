@@ -9,6 +9,7 @@ import type {
   TerminalEducationItem,
   TerminalHelpItem,
   TerminalWhoami,
+  CtfChallengeDefinition,
 } from './types';
 
 export const ASCII_HEADER: string[] = [
@@ -43,6 +44,53 @@ export const TERMINAL_HELP_ITEMS: TerminalHelpItem[] = [
   { command: 'experience', description: 'Show work experience' },
   { command: 'projects', description: 'List available projects' },
   { command: 'resume', description: 'Open my resume' },
+  { command: 'ctf', description: 'Enter mini CTF mode' },
+  { command: 'quit', description: 'Exit CTF mode when in it'}
+];
+
+export const CTF_CHALLENGES: readonly CtfChallengeDefinition[] = [
+  {
+    id: 1,
+    title: 'Challenge 1: Portfolio Trail',
+    description:
+      'Riddle: "Three rooms whisper one key. The self, the builds, the work. Read in that order and bind with underscores." Find the flag across normal portfolio commands.',
+    hints: [
+      'This one is solvable without DevTools or decoders.',
+      'Use three existing commands related to self, projects, and work history.',
+      'Take one keyword from each clue line and preserve command order.',
+      "The relevant commands are whoami, projects, and experience. Extract one marked/token-like word from each.",
+      'Build flag1{word_from_whoami_word_from_projects_word_from_experience}.',
+    ],
+    expectedFlag: 'flag1{whoami_projects_experience}',
+  },
+  {
+    id: 2,
+    title: 'Challenge 2: Inspector Signal',
+    description:
+      'Riddle: "I hide where developers stare. Open the glass, inspect the frame, and the second flag appears." Use browser DevTools to discover the flag.',
+    hints: [
+      'Open DevTools first (Ctrl+Shift+I / Cmd+Option+I).',
+      'Check Elements and look for unusual data attributes/comments.',
+      'If Elements is noisy, inspect Network responses and static files.',
+      'Search DevTools for "flag2{".',
+      'The full answer is directly visible in DevTools once you search for flag2{.',
+    ],
+    expectedFlag: 'flag2{devtools_reveals_truth}',
+  },
+  {
+    id: 3,
+    title: 'Challenge 3: Final Decode',
+    description:
+      'Riddle: "The last lock speaks in encoded text. Decode the string, wrap it correctly, and submit."',
+    hints: [
+      'This final challenge uses decoding.',
+      'Base64 is enough for this step.',
+      'You can decode directly in DevTools Console with atob(...).',
+      'Decode this: ZmluYWxfY2lwaGVyX2NvbXBsZXRl',
+      'Submit flag3{final_cipher_complete}.',
+    ],
+    expectedFlag: 'flag3{final_cipher_complete}',
+  },
 ];
 
 export const PREVIEW_DEFAULT_NAME = 'Anand Bhat';

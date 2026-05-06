@@ -121,3 +121,11 @@ export type TerminalWhoami = {
   /** Shown as `Try: a, b, c` with command names highlighted. */
   suggestedCommands: readonly string[];
 };
+
+export type CtfChallengeDefinition = {
+  id: 1 | 2 | 3;
+  title: string;
+  description: string;
+  hints: readonly [string, string, string, string, string];
+  expectedFlag: string;
+};
