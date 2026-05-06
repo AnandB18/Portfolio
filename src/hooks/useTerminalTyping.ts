@@ -92,7 +92,7 @@ export const useTerminalTyping = ({
 
           const currentChar = fullText[entry.visibleChars];
           const isPunctuation = currentChar ? '.,:;!?'.includes(currentChar) : false;
-          const delayMs = currentChar === ' ' ? 2 : isPunctuation ? 20 : 8;
+          const delayMs = currentChar === ' ' ? 0.25 : isPunctuation ? 2.5 : 1;
 
           return {
             ...entry,

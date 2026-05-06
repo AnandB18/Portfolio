@@ -78,9 +78,9 @@ const CURRENTLY_IMAGE_MAP: Record<string, string> = {
 };
 
 function App() {
-  const maxConcurrentTypingLines = 3;
+  const maxConcurrentTypingLines = 5;
   const overlapStartRatio = 0.2;
-  const typingTickMs = 8;
+  const typingTickMs = 3;
   const [input, setInput] = useState('');
   const [history, setHistory] = useState<TerminalLine[]>([
     ...ASCII_HEADER.map((text) => ({ text, kind: 'ascii' as const })),

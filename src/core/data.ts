@@ -13,11 +13,11 @@ import type {
 import resumePdfUrl from '../assets/AnandBhatResume.pdf';
 
 export const ASCII_HEADER: string[] = [
-  '  ____             __  _____      ___      ',
-  ' / __ \\____  _____/ /_/ __(_)____/ (_)___ _',
-  '/ /_/ / __ \\/ ___/ __/ /_/ / ___/ / / __ `/',
-  '/ ____/ /_/ / /  / /_/ __/ / /  / / / /_/ / ',
-  '/_/    \\____/_/   \\__/_/ /_/_/  /_/_/\\__,_/',
+    '                                                       ___',
+    ' o__      ┌─┐┌┐╷┌─┐┌┐╷╶┬┐   ┌┐ ╷ ╷┌─┐╶┬╴      o__     |   |\\',
+    '/|        ├─┤│└┤├─┤│└┤ ││   ├┴┐├─┤├─┤ │       /\\      |   |X\\',
+    '/ > o     ╵ ╵╵ ╵╵ ╵╵ ╵╶┴┘   └─┘╵ ╵╵ ╵ ╵        <\\     |   |XX\\',
+   
 ];
 
 /**
@@ -28,7 +28,7 @@ export const TERMINAL_WHOAMI: TerminalWhoami = {
   displayName: 'Anand Bhat',
   credentials: 'BS Computer Science @ George Washington University · Expected May 2027',
   tagline: 'Focus: Systems, security, and practical software engineering. From kernels and protocols to things people actually use.',
-  suggestedCommands: ['education', 'experience', 'projects', 'resume'],
+  suggestedCommands: ['education', 'experience', 'projects'],
 };
 
 /** Plain strings for the command registry / anything that needs a flat list. */
@@ -51,7 +51,7 @@ export const PREVIEW_DEFAULT_NAME = 'Anand Bhat';
 export const PREVIEW_DEFAULT_ROLE = 'Computer Science Student @ George Washington University';
 export const PREVIEW_DEFAULT_TAGLINE =
   'Systems, security, and practical software engineering—from low-level systems to user-facing apps.';
-export const PREVIEW_DEFAULT_COMMANDS = 'Try: whoami, experience, or projects to learn more about me.';
+export const PREVIEW_DEFAULT_COMMANDS = 'Run: whoami, experience, or projects to learn more about me or help to explore the portfolio.';
 
 export const TERMINAL_PROJECT_ITEMS: TerminalProjectItem[] = [
   {

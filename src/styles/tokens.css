@@ -3,7 +3,7 @@
   --color-surface: #12161b;
   --color-border: #222a33;
   --color-text: #d8e1ea;
-  --color-accent: #6ee7b7;
+  --color-accent: #35ae41;
 
   --color-terminal-shell-bg: #0c1117;
   --color-terminal-titlebar-bg: #1a2028;
@@ -15,7 +15,7 @@
   --color-prompt-host: #9fd7ff;
   --color-prompt-path: #93a1b2;
   --color-prompt-symbol: var(--color-accent);
-  --color-terminal-line-ascii: #cfd8e3;
+  --color-terminal-line-ascii: var(--color-accent);
   --color-terminal-line-system: #aeb9c7;
   --color-terminal-line-command: #e6edf5;
   --color-terminal-line-output: #aab8c6;
