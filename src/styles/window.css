@@ -72,6 +72,13 @@
   flex: 0 0 auto;
 }
 
+.window-tab-icon-svg {
+  width: 1.08rem;
+  height: 1.08rem;
+  display: block;
+  object-fit: contain;
+}
+
 .window-tab-label {
   min-width: 0;
   overflow: hidden;

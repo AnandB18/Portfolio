@@ -13,7 +13,6 @@ import {
   faFilePdf,
   faGraduationCap,
   faLock,
-  faTerminal,
   faTrophy,
   faUser,
   faWaveSquare,
@@ -1277,7 +1276,7 @@ function App() {
         <div className="window-shell">
           <div className="window-titlebar" aria-hidden="true">
             <div className="window-tab">
-              <FontAwesomeIcon icon={faTerminal} className="window-tab-icon" />
+              <img src="/favicon.svg" className="window-tab-icon window-tab-icon-svg" alt="" aria-hidden="true" />
               <span className="window-tab-label">Autobhat Terminal</span>
             </div>
           </div>
