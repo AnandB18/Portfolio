@@ -41,7 +41,7 @@ import portfolioImage from './assets/Porfolio.png';
 import redRisingPhoto from './assets/Red_Rising_Photo.jpg';
 import { hrefOpensInNewTab } from './core/linkUtils';
 import { executeCommand } from './core/runner';
-import { buildInitialTerminalHistory } from './core/terminalBootstrap';
+import { buildInitialTerminalHistory, getAsciiHeaderLines } from './core/terminalBootstrap';
 import type { TerminalLine, TerminalSegment } from './core/types';
 import { useTerminalTyping } from './hooks/useTerminalTyping';
 import './styles/tokens.css';
@@ -50,7 +50,6 @@ import './styles/layout.css';
 import './styles/window.css';
 import './styles/terminal.css';
 import './styles/preview.css';
-import './styles/boot.css';
 
 type PreviewState =
   | 'default'
@@ -82,6 +81,10 @@ const DEFAULT_CTF_PROGRESS: CtfProgress = {
 const CTF_CHALLENGE_2_FLAG =
   CTF_CHALLENGES.find((challenge) => challenge.id === 2)?.expectedFlag ?? 'flag2{devtools_reveals_truth}';
 const CTF_CHALLENGE_3_ENCODED = 'lehgh_wolbkn_wuijrank';
+const CTF_ANSWER_CONTACT_MESSAGE = 'No spoilers here. Contact me and we can discuss the answer path together.';
+const CTF_ANSWER_CONTACT_MESSAGE_TERMINAL =
+  'No spoilers for this challenge here. Contact me and we can discuss the answer path together.';
+const BOOT_DURATION_MS = 850;
 
 const preloadImage = (src: string) => {
   const img = new Image();
@@ -138,7 +141,9 @@ function App() {
   const overlapStartRatio = 0.2;
   const typingTickMs = 3;
   const [input, setInput] = useState('');
-  const [history, setHistory] = useState<TerminalLine[]>(buildInitialTerminalHistory);
+  const [history, setHistory] = useState<TerminalLine[]>([]);
+  const [isBooting, setIsBooting] = useState(true);
+  const [bootVisibleChars, setBootVisibleChars] = useState(0);
   const [commandHistory, setCommandHistory] = useState<string[]>([]);
   const [historyIndex, setHistoryIndex] = useState(-1);
   const [courseworkManualById, setCourseworkManualById] = useState<Record<string, boolean>>({});
@@ -194,10 +199,33 @@ function App() {
   const ctfActiveChallenge = getCtfChallengeById(ctfProgress.currentChallenge);
   const ctfSolvedCount = Number(ctfProgress.solved[1]) + Number(ctfProgress.solved[2]) + Number(ctfProgress.solved[3]);
   const ctfIsComplete = ctfSolvedCount === 3;
+  const bootAsciiLines = getAsciiHeaderLines();
+  const bootAsciiMaxChars = bootAsciiLines.reduce((max, line) => Math.max(max, line.text.length), 0);
 
   useEffect(() => {
     window.localStorage.setItem(CTF_STORAGE_KEY, JSON.stringify(ctfProgress));
   }, [ctfProgress]);
+
+  useEffect(() => {
+    const start = performance.now();
+    let rafId = 0;
+
+    const step = (now: number) => {
+      const progress = Math.min(1, (now - start) / BOOT_DURATION_MS);
+      setBootVisibleChars(Math.floor(bootAsciiMaxChars * progress));
+
+      if (progress < 1) {
+        rafId = window.requestAnimationFrame(step);
+        return;
+      }
+
+      setHistory([...buildInitialTerminalHistory()]);
+      setIsBooting(false);
+    };
+
+    rafId = window.requestAnimationFrame(step);
+    return () => window.cancelAnimationFrame(rafId);
+  }, [bootAsciiMaxChars]);
 
   const normalizePreviewScroll = useCallback(() => {
     const el = previewOutputRef.current;
@@ -581,11 +609,10 @@ function App() {
           </div>
           <p className="preview-ctf-rules">
             Solve challenges in order. Use terminal commands, DevTools, and decoding where prompted. Use hint buttons for
-            progressively stronger clues. *Strongly Encouraged*
+            progressively stronger clues.
             <br />
             Submission format: <code>submit flag1&#123;...&#125;</code>,{' '}
             <code>submit flag2&#123;...&#125;</code>, or <code>submit flag3&#123;...&#125;</code>.
-            <br />
           </p>
           <p className="preview-ctf-commands">
             Commands: <span>ctf</span>, <span>status</span>, <span>challenge &lt;n&gt;</span>, <span>hint &lt;n&gt;</span>,{' '}
@@ -664,7 +691,7 @@ function App() {
                         setCtfAnswerPromptByChallenge((prev) => ({ ...prev, [challenge.id]: true }));
                         pushTerminalOutput([
                           {
-                            text: `No spoilers for Challenge ${challenge.id} here. Contact me and we can discuss the answer path together.`,
+                            text: CTF_ANSWER_CONTACT_MESSAGE_TERMINAL,
                             kind: 'hint',
                           },
                         ]);
@@ -676,7 +703,7 @@ function App() {
                 </div>
                 {status !== 'completed' && ctfAnswerPromptByChallenge[challenge.id] ? (
                   <p className="preview-ctf-answer-note">
-                    No spoilers here. Contact me and we can discuss the answer path together.
+                    {CTF_ANSWER_CONTACT_MESSAGE}
                   </p>
                 ) : null}
                 {status === 'completed' ? (
@@ -1089,6 +1116,7 @@ function App() {
   };
 
   const submitCurrentInput = () => {
+    if (isBooting) return;
     runCommand(input);
     setInput('');
   };
@@ -1104,6 +1132,8 @@ function App() {
 
   // Handles keyboard-first terminal interactions (history + autocomplete).
   const handleInputKeyDown: KeyboardEventHandler<HTMLInputElement> = (e) => {
+    if (isBooting) return;
+
     if (e.key === 'Enter') {
       e.preventDefault();
       submitCurrentInput();
@@ -1278,21 +1308,30 @@ function App() {
                   </p>
                 );
               })}
+              {isBooting
+                ? bootAsciiLines.map((line, idx) => (
+                    <p key={`boot-ascii-${idx}`} className="line-ascii line-typing-active">
+                      {line.text.slice(0, bootVisibleChars)}
+                    </p>
+                  ))
+                : null}
 
-              <div className="terminal-active-prompt-line">
-                <label className="terminal-prompt" htmlFor="terminal-input">
-                  {renderPrompt()}
-                </label>
-                <input
-                  ref={inputRef}
-                  id="terminal-input"
-                  value={input}
-                  onChange={(e) => setInput(e.target.value)}
-                  onKeyDown={handleInputKeyDown}
-                  autoComplete="off"
-                  spellCheck={false}
-                />
-              </div>
+              {!isBooting ? (
+                <div className="terminal-active-prompt-line">
+                  <label className="terminal-prompt" htmlFor="terminal-input">
+                    {renderPrompt()}
+                  </label>
+                  <input
+                    ref={inputRef}
+                    id="terminal-input"
+                    value={input}
+                    onChange={(e) => setInput(e.target.value)}
+                    onKeyDown={handleInputKeyDown}
+                    autoComplete="off"
+                    spellCheck={false}
+                  />
+                </div>
+              ) : null}
             </div>
           </div>
         </div>

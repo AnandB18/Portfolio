@@ -11,12 +11,18 @@ const welcomeLine: TerminalLine = {
   ],
 };
 
-/** Banner + welcome row; used on first load and after `clear`. */
-export function buildInitialTerminalHistory(): TerminalLine[] {
-  const asciiLines = ASCII_HEADER.filter((line) => line.trim().length > 0).map((text) => ({
+export function getAsciiHeaderLines(): TerminalLine[] {
+  return ASCII_HEADER.filter((line) => line.trim().length > 0).map((text) => ({
     text,
     kind: 'ascii' as const,
   }));
+}
 
-  return [...asciiLines, { text: '', kind: 'system' }, welcomeLine];
+export function getWelcomeLine(): TerminalLine {
+  return welcomeLine;
+}
+
+/** Banner + welcome row; used on first load and after `clear`. */
+export function buildInitialTerminalHistory(): TerminalLine[] {
+  return [...getAsciiHeaderLines(), { text: '', kind: 'system' }, getWelcomeLine()];
 }
