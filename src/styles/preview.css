@@ -13,8 +13,8 @@
   background:
     radial-gradient(680px circle at 16% 10%, rgba(94, 161, 255, 0.16), transparent 56%),
     linear-gradient(155deg, #121b26 0%, #0c1117 72%);
-  background-size: 120% 120%, 100% 100%;
-  animation: preview-bg-drift 9s ease-in-out infinite alternate;
+  background-size: 115% 115%, 100% 100%;
+  animation: preview-bg-drift 22s ease-in-out infinite alternate;
 }
 
 .preview-output-scroll {
@@ -67,18 +67,18 @@
     linear-gradient(to bottom, rgba(0, 0, 0, 0.2), transparent 22%, transparent 76%, rgba(0, 0, 0, 0.28)),
     repeating-linear-gradient(
       to bottom,
-      rgba(170, 215, 255, 0.028) 0px,
-      rgba(170, 215, 255, 0.028) 1px,
+      rgba(170, 215, 255, 0.016) 0px,
+      rgba(170, 215, 255, 0.016) 1px,
       transparent 1px,
       transparent 4px
     );
   pointer-events: none;
-  opacity: 0.86;
+  opacity: 0.84;
   transition: opacity 220ms ease;
   animation:
-    preview-scanline-shift 3.2s linear infinite,
-    preview-overlay-flicker 6.4s ease-in-out infinite,
-    preview-overlay-drift 8.5s ease-in-out infinite alternate;
+    preview-scanline-shift 9s linear infinite,
+    preview-overlay-flicker 18s ease-in-out infinite,
+    preview-overlay-drift 20s ease-in-out infinite alternate;
 }
 
 .preview-output-scroll::after {
@@ -86,31 +86,31 @@
   position: absolute;
   inset: 0;
   z-index: 0;
-  background: radial-gradient(circle at 26% 24%, rgba(126, 196, 255, 0.12), transparent 46%);
+  background: radial-gradient(circle at 26% 24%, rgba(126, 196, 255, 0.09), transparent 48%);
   filter: blur(18px);
   pointer-events: none;
-  opacity: 0.9;
+  opacity: 0.88;
   transition: opacity 240ms ease, transform 260ms ease, filter 260ms ease;
-  animation: preview-glow-drift 8s ease-in-out infinite alternate, preview-glow-breathe 3.6s ease-in-out infinite;
+  animation: preview-glow-drift 18s ease-in-out infinite alternate, preview-glow-breathe 8s ease-in-out infinite;
 }
 
 .preview-output.preview-effect-pulse .preview-output-scroll::after {
-  opacity: 0.95;
-  transform: translate(2.4%, 1.2%) scale(1.07);
-  filter: blur(17px) saturate(1.04);
+  opacity: 0.93;
+  transform: translate(1.2%, 0.6%) scale(1.03);
+  filter: blur(17px) saturate(1.02);
 }
 
 .preview-output.preview-effect-pulse .preview-output-scroll::before {
-  opacity: 0.84;
+  opacity: 0.86;
 }
 
 .preview-output.preview-effect-spike .preview-output-scroll::before {
-  opacity: 0.94;
+  opacity: 0.9;
 }
 
 .preview-output.preview-effect-spike .preview-output-scroll::after {
-  opacity: 1;
-  transform: translate(4%, 2%) scale(1.1);
+  opacity: 0.97;
+  transform: translate(2%, 1%) scale(1.045);
   filter: blur(18px);
 }
 
@@ -1095,16 +1095,16 @@
     transform: translate(0, 0);
   }
   100% {
-    transform: translate(2%, 1.5%);
+    transform: translate(0.7%, 0.55%);
   }
 }
 
 @keyframes preview-bg-drift {
   0% {
-    background-position: 14% 8%, 50% 50%;
+    background-position: 15% 10%, 50% 50%;
   }
   100% {
-    background-position: 29% 21%, 50% 54%;
+    background-position: 22% 16%, 50% 52%;
   }
 }
 
@@ -1117,43 +1117,43 @@
   100% {
     background-position:
       0 0,
-      0 44px;
+      0 20px;
   }
 }
 
 @keyframes preview-overlay-flicker {
   0% {
-    opacity: 0.74;
+    opacity: 0.82;
   }
   5% {
-    opacity: 0.9;
+    opacity: 0.87;
   }
   14% {
-    opacity: 0.78;
+    opacity: 0.83;
   }
   38% {
-    opacity: 0.94;
+    opacity: 0.88;
   }
   66% {
-    opacity: 0.8;
+    opacity: 0.84;
   }
   85% {
-    opacity: 0.92;
+    opacity: 0.87;
   }
   100% {
-    opacity: 0.74;
+    opacity: 0.82;
   }
 }
 
 @keyframes preview-glow-breathe {
   0% {
-    opacity: 0.62;
+    opacity: 0.74;
   }
   50% {
-    opacity: 0.92;
+    opacity: 0.86;
   }
   100% {
-    opacity: 0.62;
+    opacity: 0.74;
   }
 }
 
@@ -1162,7 +1162,7 @@
     transform: translateY(0);
   }
   100% {
-    transform: translateY(8px);
+    transform: translateY(3px);
   }
 }
 
